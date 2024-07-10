@@ -36,4 +36,6 @@ void CMainWindow::updateProcessesCombo() {
     for(const auto& process : processes) {
         ui->processComboBox->addItem(QString(process.format().c_str()));
     }
+
+    ui->processCountLabel->setText(QString("Total Processes: ") + QString::number(processes.size()));
 }
