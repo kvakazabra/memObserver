@@ -6,11 +6,7 @@
 
 class CProcessMemento final : public IFormattable {
 public:
-    CProcessMemento() = delete;
-    CProcessMemento(const std::uint32_t id, const std::string& name)
-        : m_Id{ id }
-        , m_Name{ name }
-    { }
+    CProcessMemento(const std::uint32_t id, const std::string& name);
     virtual ~CProcessMemento() = default;
 
     CProcessMemento(const CProcessMemento&) = default;
@@ -21,15 +17,10 @@ public:
 
     friend int operator<=>(const CProcessMemento& a1, const CProcessMemento& a2);
 public:
-
-    virtual std::string format() const override {
-        //char buffer[512]{ };
-        //sprintf_s(buffer, "[%d] %s - %s", m_Id, m_Name.c_str(), m_Description.c_str());
-
-        char buffer[256]{ };
-        sprintf_s(buffer, "[%d] %s", m_Id, m_Name.c_str());
-        return std::string(buffer);
-    }
+    virtual std::string format() const override;
+    std::uint32_t id() const;
+    const std::string& name() const;
+    const std::string& description() const;
 private:
     std::uint32_t m_Id{ };
     std::string m_Name{ }, m_Description{ };
@@ -49,4 +40,23 @@ private:
     void sortByID();
 
     std::vector<CProcessMemento> m_Processes{ };
+};
+
+class CProcess final {
+public:
+    CProcess(const CProcessMemento& process);
+    CProcess(std::uint32_t id);
+    ~CProcess();
+
+    bool isAttached() const;
+    HANDLE handle() const;
+    const std::string& name() const;
+private:
+    bool tryAttach();
+    void detach();
+
+    std::uint32_t m_Id{ };
+    std::string m_Name{ };
+
+    HANDLE m_Handle{ INVALID_HANDLE_VALUE };
 };

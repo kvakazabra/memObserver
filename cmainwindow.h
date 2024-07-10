@@ -19,6 +19,7 @@ public:
 
 private slots:
     void on_processRefreshButton_clicked();
+    void on_processComboBox_activated(int index);
 
 private:
     Ui::CMainWindow *ui;
@@ -26,5 +27,7 @@ private:
     void setupTextures();
 
     std::unique_ptr<CProcessList> m_ProcessList{ std::make_unique<CProcessList>() };
+    std::unique_ptr<CProcess> m_SelectedProcess{ };
     void updateProcessesCombo();
+    void updateProcessLastMessage(const QString& message);
 };

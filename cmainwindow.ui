@@ -107,7 +107,7 @@
        </layout>
       </item>
       <item>
-       <widget class="QLabel" name="processCountLabel">
+       <widget class="QLabel" name="processLastMessage">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
           <horstretch>0</horstretch>
