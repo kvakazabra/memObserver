@@ -18,6 +18,7 @@ public:
     friend int operator<=>(const CProcessMemento& a1, const CProcessMemento& a2);
 public:
     virtual std::string format() const override;
+
     std::uint32_t id() const;
     const std::string& name() const;
     const std::string& description() const;
@@ -52,6 +53,7 @@ public:
     HANDLE handle() const;
     const std::string& name() const; // todo maybe just compose CProcessMemento here?
     std::uint32_t id() const;
+    // memento get
 private:
     bool tryAttach();
     void detach();

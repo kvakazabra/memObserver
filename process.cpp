@@ -51,7 +51,7 @@ void CProcessList::refresh() {
     cleanup();
 
     HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-    if(snapshot == INVALID_HANDLE_VALUE)
+    if(!Utilities::isHandleValid(snapshot))
         return;
 
     PROCESSENTRY32 entry{ };
@@ -103,7 +103,7 @@ std::uint32_t CProcess::id() const {
 }
 
 bool CProcess::isAttached() const {
-    return handle() != INVALID_HANDLE_VALUE && handle() != 0;
+    return Utilities::isHandleValid(handle());
 }
 bool CProcess::tryAttach() {
     m_Handle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, m_Id);
