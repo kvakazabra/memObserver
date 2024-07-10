@@ -28,6 +28,8 @@ CMainWindow::CMainWindow(QWidget *parent)
 
 CMainWindow::~CMainWindow() {
     delete ui;
+    m_SelectedProcess.reset();
+    m_ProcessList.reset();
 }
 
 void CMainWindow::on_processRefreshButton_clicked() {
