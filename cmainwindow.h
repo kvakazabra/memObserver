@@ -20,20 +20,24 @@ public:
 private slots:
     void on_processRefreshButton_clicked();
     void on_processComboBox_activated(int index);
-
     void on_modulesRefreshButton_clicked();
-
+    void on_modulesList_currentRowChanged(int currentRow);
+    void on_moduleInfoHexadecimalButton_clicked();
+    void on_moduleInfoDecimalButton_clicked();
 private:
     Ui::CMainWindow *ui;
-
     void setupTextures();
 
     std::shared_ptr<CProcessList> m_ProcessList{ std::make_shared<CProcessList>() };
     std::shared_ptr<CProcess> m_SelectedProcess{ };
     std::shared_ptr<CModuleList> m_ModulesList{ };
+    int m_SelectedModule{ -1 };
+    void selectModule(int idx = -1);
+
     void updateProcessesCombo();
-    void updateProcessLastMessage(const QString& message);
+    void updateProcessLastLabel(const QString& message);
     void updateCurrentProcessLabel(const CProcessMemento& process = CProcessMemento(0, "none"));
+    void updateModuleInfoLines();
 
     void onProcessAttach();
     void onProcessDetach();

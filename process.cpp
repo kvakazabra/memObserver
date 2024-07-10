@@ -175,8 +175,8 @@ void CModuleList::refresh() {
         do {
             std::wstring wName = std::wstring(entry.szModule);
             m_Modules.emplace_back(
-                reinterpret_cast<std::uint64_t>(entry.hModule),
-                static_cast<std::uint32_t>(entry.dwSize),
+                reinterpret_cast<std::uint64_t>(entry.modBaseAddr),
+                static_cast<std::uint32_t>(entry.modBaseSize),
                 std::string(wName.begin(), wName.end())
             );
         } while(Module32Next(snapshot, &entry));

@@ -45,10 +45,10 @@ void CMainWindow::updateProcessesCombo() {
         ui->processComboBox->addItem(QString(process.format().c_str()));
     }
 
-    updateProcessLastMessage(QString("Total Processes: ") + QString::number(processes.size()));
+    updateProcessLastLabel(QString("Total Processes: ") + QString::number(processes.size()));
 }
 
-void CMainWindow::updateProcessLastMessage(const QString& message) {
+void CMainWindow::updateProcessLastLabel(const QString& message) {
     ui->processLastMessage->setText(message);
 }
 
@@ -58,13 +58,13 @@ void CMainWindow::updateCurrentProcessLabel(const CProcessMemento& process) {
 }
 
 void CMainWindow::on_processComboBox_activated(int index) {
-    if(index > m_ProcessList->data().size())
+    if(index >= m_ProcessList->data().size())
         throw std::runtime_error("Out of bounds: m_ProcessList");
 
     onProcessDetach();
     auto selectedProcess = std::make_shared<CProcess>(m_ProcessList->data()[index]);
     if(!selectedProcess->isAttached()) {
-        updateProcessLastMessage(QString("Failed to attach"));
+        updateProcessLastLabel(QString("Failed to attach"));
         return;
     }
 
@@ -73,7 +73,7 @@ void CMainWindow::on_processComboBox_activated(int index) {
 }
 
 void CMainWindow::onProcessAttach() {
-    updateProcessLastMessage(QString("Attached to ") + QString(m_SelectedProcess->name().c_str()) + QString(" successfully"));
+    updateProcessLastLabel(QString("Attached to ") + QString(m_SelectedProcess->name().c_str()) + QString(" successfully"));
     updateCurrentProcessLabel(CProcessMemento(m_SelectedProcess->id(), m_SelectedProcess->name())); // TODO (seriously): compose a fucking memento into a fucking process, this is the third time I needed it
 
     m_ModulesList = std::make_shared<CModuleList>(m_SelectedProcess);
@@ -86,15 +86,55 @@ void CMainWindow::onProcessDetach() {
     ui->modulesList->clear();
     m_ModulesList.reset();
 
-    m_SelectedProcess.reset();
+    selectModule(-1);
 
-    updateCurrentProcessLabel(); // clean current process info
+    m_SelectedProcess.reset();
+    updateCurrentProcessLabel();
+}
+
+void CMainWindow::selectModule(int idx) {
+    m_SelectedModule = idx;
+    updateModuleInfoLines();
 }
 
 void CMainWindow::on_modulesRefreshButton_clicked() {
     if(!m_ModulesList)
         return;
 
+    selectModule(-1);
     m_ModulesList->refresh();
+}
+
+void CMainWindow::updateModuleInfoLines() {
+    if(m_SelectedModule == -1) {
+        ui->moduleInfoNameLine->setText("");
+        ui->moduleInfoBaseAddressLine->setText("");
+        ui->moduleInfoSizeLine->setText("");
+        return;
+    }
+
+    const auto& selectedModule = m_ModulesList->data()[m_SelectedModule];
+    const auto [baseAddress, size] = selectedModule.info();
+
+    const int base = ui->moduleInfoDecimalButton->isChecked() ? 10 : 16;
+
+    ui->moduleInfoNameLine->setText(QString(selectedModule.name().c_str()));
+    ui->moduleInfoBaseAddressLine->setText(QString::number(baseAddress, base));
+    ui->moduleInfoSizeLine->setText(QString::number(size, base));
+}
+
+void CMainWindow::on_modulesList_currentRowChanged(int currentRow) {
+    if(currentRow >= m_ModulesList->data().size())
+        throw std::runtime_error("Out of bounds: m_ModulesList");
+
+    selectModule(currentRow);
+}
+
+void CMainWindow::on_moduleInfoHexadecimalButton_clicked() {
+    updateModuleInfoLines();
+}
+
+void CMainWindow::on_moduleInfoDecimalButton_clicked() {
+    updateModuleInfoLines();
 }
 
