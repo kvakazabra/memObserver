@@ -21,6 +21,8 @@ private slots:
     void on_processRefreshButton_clicked();
     void on_processComboBox_activated(int index);
 
+    void on_modulesRefreshButton_clicked();
+
 private:
     Ui::CMainWindow *ui;
 
@@ -32,6 +34,9 @@ private:
     void updateProcessesCombo();
     void updateProcessLastMessage(const QString& message);
     void updateCurrentProcessLabel(const CProcessMemento& process = CProcessMemento(0, "none"));
+
+    void onProcessAttach();
+    void onProcessDetach();
 };
 
 /*

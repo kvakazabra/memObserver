@@ -61,21 +61,40 @@ void CMainWindow::on_processComboBox_activated(int index) {
     if(index > m_ProcessList->data().size())
         throw std::runtime_error("Out of bounds: m_ProcessList");
 
-    m_SelectedProcess.reset();
-    m_SelectedProcess = std::make_unique<CProcess>(m_ProcessList->data()[index]);
-
-    if(!m_SelectedProcess->isAttached()) {
+    onProcessDetach();
+    auto selectedProcess = std::make_shared<CProcess>(m_ProcessList->data()[index]);
+    if(!selectedProcess->isAttached()) {
         updateProcessLastMessage(QString("Failed to attach"));
-        m_SelectedProcess.reset();
         return;
     }
 
+    m_SelectedProcess = std::move(selectedProcess);
+    onProcessAttach();
+}
+
+void CMainWindow::onProcessAttach() {
     updateProcessLastMessage(QString("Attached to ") + QString(m_SelectedProcess->name().c_str()) + QString(" successfully"));
-    updateCurrentProcessLabel(m_ProcessList->data()[index]);
+    updateCurrentProcessLabel(CProcessMemento(m_SelectedProcess->id(), m_SelectedProcess->name())); // TODO (seriously): compose a fucking memento into a fucking process, this is the third time I needed it
 
     m_ModulesList = std::make_shared<CModuleList>(m_SelectedProcess);
     for(auto& module : m_ModulesList->data()) {
         ui->modulesList->addItem(QString(module.format().c_str()));
     }
+}
+
+void CMainWindow::onProcessDetach() {
+    ui->modulesList->clear();
+    m_ModulesList.reset();
+
+    m_SelectedProcess.reset();
+
+    updateCurrentProcessLabel(); // clean current process info
+}
+
+void CMainWindow::on_modulesRefreshButton_clicked() {
+    if(!m_ModulesList)
+        return;
+
+    m_ModulesList->refresh();
 }
 
