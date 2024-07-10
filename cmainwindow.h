@@ -26,9 +26,16 @@ private:
 
     void setupTextures();
 
-    std::unique_ptr<CProcessList> m_ProcessList{ std::make_unique<CProcessList>() };
-    std::unique_ptr<CProcess> m_SelectedProcess{ };
+    std::shared_ptr<CProcessList> m_ProcessList{ std::make_shared<CProcessList>() };
+    std::shared_ptr<CProcess> m_SelectedProcess{ };
+    std::shared_ptr<CModuleList> m_ModulesList{ };
     void updateProcessesCombo();
     void updateProcessLastMessage(const QString& message);
     void updateCurrentProcessLabel(const CProcessMemento& process = CProcessMemento(0, "none"));
 };
+
+/*
+ * process list -> refresh, combobox, (maybe) button to attach
+ * modules list -> refresh, list widget, on right click on item context menu (copy address, copy dll name), on select maybe dump sections info
+ * address dumper -> line edit with address, auto refresh, text edit with vertical scroll
+*/

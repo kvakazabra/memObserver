@@ -70,7 +70,12 @@ void CMainWindow::on_processComboBox_activated(int index) {
         return;
     }
 
-    updateProcessLastMessage(QString("Attached to ") + QString(m_ProcessList->data()[index].name().c_str()) + QString(" successfully"));
+    updateProcessLastMessage(QString("Attached to ") + QString(m_SelectedProcess->name().c_str()) + QString(" successfully"));
     updateCurrentProcessLabel(m_ProcessList->data()[index]);
+
+    m_ModulesList = std::make_shared<CModuleList>(m_SelectedProcess);
+    for(auto& module : m_ModulesList->data()) {
+        ui->modulesList->addItem(QString(module.format().c_str()));
+    }
 }
 
