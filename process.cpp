@@ -12,6 +12,10 @@ CProcessMemento& CProcessMemento::operator=(CProcessMemento&& mv) {
     return *this;
 }
 
+int operator<=>(const CProcessMemento& a1, const CProcessMemento& a2) {
+    return a1.m_Id - a2.m_Id;
+}
+
 CProcessList::CProcessList() {
     refresh();
 }
@@ -36,6 +40,8 @@ void CProcessList::refresh() {
             m_Processes.emplace_back(static_cast<std::uint32_t>(entry.th32ProcessID), std::string(wName.begin(), wName.end()));
         } while(Process32Next(snapshot, &entry));
     }
+
+    sortByID();
 }
 
 const std::vector<CProcessMemento>& CProcessList::data() const {
@@ -44,4 +50,8 @@ const std::vector<CProcessMemento>& CProcessList::data() const {
 
 void CProcessList::cleanup() {
     m_Processes.clear();
+}
+
+void CProcessList::sortByID() {
+    std::sort(m_Processes.begin(), m_Processes.end());
 }
