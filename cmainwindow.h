@@ -30,4 +30,5 @@ private:
     std::unique_ptr<CProcess> m_SelectedProcess{ };
     void updateProcessesCombo();
     void updateProcessLastMessage(const QString& message);
+    void updateCurrentProcessLabel(const CProcessMemento& process = CProcessMemento(0, "none"));
 };

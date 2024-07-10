@@ -50,7 +50,8 @@ public:
 
     bool isAttached() const;
     HANDLE handle() const;
-    const std::string& name() const;
+    const std::string& name() const; // todo maybe just compose CProcessMemento here?
+    std::uint32_t id() const;
 private:
     bool tryAttach();
     void detach();

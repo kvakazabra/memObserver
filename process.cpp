@@ -92,15 +92,18 @@ CProcess::~CProcess() {
     printf("Detaching: %s\n", m_Name.c_str());
 }
 
-bool CProcess::isAttached() const {
-    return handle() != INVALID_HANDLE_VALUE && handle() != 0;
-}
 HANDLE CProcess::handle() const {
     return m_Handle;
 }
-
 const std::string& CProcess::name() const {
     return m_Name;
+}
+std::uint32_t CProcess::id() const {
+    return m_Id;
+}
+
+bool CProcess::isAttached() const {
+    return handle() != INVALID_HANDLE_VALUE && handle() != 0;
 }
 bool CProcess::tryAttach() {
     m_Handle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, m_Id);

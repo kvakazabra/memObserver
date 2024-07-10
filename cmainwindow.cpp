@@ -23,6 +23,7 @@ CMainWindow::CMainWindow(QWidget *parent)
     showConsole();
     setupTextures();
     updateProcessesCombo();
+    updateCurrentProcessLabel();
 }
 
 CMainWindow::~CMainWindow() {
@@ -49,6 +50,11 @@ void CMainWindow::updateProcessLastMessage(const QString& message) {
     ui->processLastMessage->setText(message);
 }
 
+void CMainWindow::updateCurrentProcessLabel(const CProcessMemento& process) {
+    ui->processCurrentLabel->setText(QString("Current Process: ") +
+                                     QString(process.name().c_str()) + QString(" [") + QString::number(process.id()) + QString("]"));
+}
+
 void CMainWindow::on_processComboBox_activated(int index) {
     if(index > m_ProcessList->data().size())
         throw std::runtime_error("Out of bounds: m_ProcessList");
@@ -63,5 +69,6 @@ void CMainWindow::on_processComboBox_activated(int index) {
     }
 
     updateProcessLastMessage(QString("Attached to ") + QString(m_ProcessList->data()[index].name().c_str()) + QString(" successfully"));
+    updateCurrentProcessLabel(m_ProcessList->data()[index]);
 }
 
