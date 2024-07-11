@@ -87,9 +87,11 @@ void CMainWindow::onProcessAttach() {
     updateProcessLastLabel(QString("Attached to ") + QString(m_SelectedProcess->memento().name().c_str()) + QString(" successfully"));
     updateCurrentProcessLabel(m_SelectedProcess->memento());
 
-    m_ModulesList = std::make_shared<CModuleList>(m_SelectedProcess);
-    for(auto& module : m_ModulesList->data()) {
-        ui->modulesList->addItem(QString(module.format().c_str()));
+    if(m_SelectedProcess->moduleList().expired())
+        throw std::runtime_error("Expired std::weak_ptr<CModuleList>, this should not happen");
+
+    for(auto& module : m_SelectedProcess->moduleList().lock()->data()) {
+        ui->modulesList->addItem(QString(module.memento().format().c_str()));
     }
 }
 
@@ -98,8 +100,6 @@ void CMainWindow::onProcessDetach() {
     m_MemoryOffset = { };
 
     ui->modulesList->clear();
-    m_ModulesList.reset();
-
     selectModule(-1);
 
     m_SelectedProcess.reset();
@@ -112,11 +112,14 @@ void CMainWindow::selectModule(int idx) {
 }
 
 void CMainWindow::on_modulesRefreshButton_clicked() {
-    if(!m_ModulesList)
+    if(!m_SelectedProcess)
         return;
 
+    if(m_SelectedProcess->moduleList().expired())
+        throw std::runtime_error("Expired std::weak_ptr<CModuleList>, this should not happen");
+
     selectModule(-1);
-    m_ModulesList->refresh();
+    m_SelectedProcess->moduleList().lock()->refresh();
 }
 
 void CMainWindow::updateModuleInfoLines() {
@@ -127,20 +130,25 @@ void CMainWindow::updateModuleInfoLines() {
         return;
     }
 
-    const auto& selectedModule = m_ModulesList->data()[m_SelectedModule];
-    const auto [baseAddress, size] = selectedModule.info();
+    if(m_SelectedProcess->moduleList().expired())
+        throw std::runtime_error("Expired std::weak_ptr<CModuleList>, this should not happen");
+
+    const auto modulesData = m_SelectedProcess->moduleList().lock()->data();
+
+    if(m_SelectedModule >= modulesData.size())
+        throw std::runtime_error("Error: m_SelectedModule >= modulesData.size()");
+
+    const auto& selectedModule = modulesData[m_SelectedModule];
+    const auto [baseAddress, size] = selectedModule.memento().info();
 
     const int base = ui->moduleInfoDecimalButton->isChecked() ? 10 : 16;
 
-    ui->moduleInfoNameLine->setText(QString(selectedModule.name().c_str()));
+    ui->moduleInfoNameLine->setText(QString(selectedModule.memento().name().c_str()));
     ui->moduleInfoBaseAddressLine->setText(QString::number(baseAddress, base));
     ui->moduleInfoSizeLine->setText(QString::number(size, base));
 }
 
 void CMainWindow::on_modulesList_currentRowChanged(int currentRow) {
-    if(currentRow >= m_ModulesList->data().size())
-        throw std::runtime_error("Out of bounds: m_ModulesList");
-
     selectModule(currentRow);
 }
 

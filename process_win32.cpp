@@ -1,10 +1,48 @@
 #include "process_win32.h"
 
 CProcessWinIO::CProcessWinIO(const CProcessMemento& process)
-    : IProcessIO{ process } { }
+    : IProcessIO{ process } {
+    tryAttach();
+    printf("[CProcessWinIO] Attaching: %s\n", memento().name().c_str());
+
+    m_ModuleList = std::make_unique<CModuleList>(this);
+    m_ModuleList->refresh();
+}
 
 CProcessWinIO::CProcessWinIO(std::uint32_t id)
     : IProcessIO{ id } { }
+
+CProcessWinIO::~CProcessWinIO() {
+    detach();
+    printf("[~CProcessWinIO] Detaching: %s\n", memento().name().c_str());
+}
+
+bool CProcessWinIO::isAttached() const {
+    return Utilities::isHandleValid(handle());
+}
+
+bool CProcessWinIO::tryAttach() {
+    if(GetProcessId(GetCurrentProcess()) == memento().id())
+        return false;
+
+    m_Handle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, memento().id());
+    if(!isAttached())
+        return false;
+
+    return true;
+}
+
+void CProcessWinIO::detach() {
+    if(!isAttached())
+        return;
+
+    CloseHandle(m_Handle);
+    m_Handle = INVALID_HANDLE_VALUE;
+}
+
+HANDLE CProcessWinIO::handle() const {
+    return m_Handle;
+}
 
 bool CProcessWinIO::readToBuffer(std::uint64_t address, std::uint32_t size, void* buffer) const {
     if(!isAttached())

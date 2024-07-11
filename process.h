@@ -1,6 +1,6 @@
 #pragma once
 #include "utilities.h"
-
+#include "module.h"
 #include <Windows.h>
 #include <vector>
 
@@ -30,7 +30,7 @@ private:
 class CProcessList final {
 public:
     CProcessList();
-    ~CProcessList();
+    ~CProcessList() = default;
 
     // copy/move later
 public:
@@ -44,30 +44,15 @@ private:
     std::vector<CProcessMemento> m_Processes{ };
 };
 
-class CProcess {
-public:
-    CProcess(const CProcessMemento& process);
-    CProcess(std::uint32_t id);
-    virtual ~CProcess();
+class CModuleList;
 
-    bool isAttached() const;
-    HANDLE handle() const;
+class IProcessIO {
+public:
+    IProcessIO(const CProcessMemento& process);
+    IProcessIO(std::uint32_t id);
+    virtual ~IProcessIO() = default;
 
     const CProcessMemento& memento() const;
-private:
-    bool tryAttach();
-    void detach();
-
-    CProcessMemento m_Memento;
-
-    HANDLE m_Handle{ INVALID_HANDLE_VALUE };
-};
-
-class IProcessIO : public CProcess {
-public:
-    IProcessIO(const CProcessMemento& process) : CProcess{ process } { }
-    IProcessIO(std::uint32_t id) : CProcess{ id } { }
-    virtual ~IProcessIO() = default;
 
     virtual bool readToBuffer(std::uint64_t address, std::uint32_t size, void* buffer) const = 0;
     virtual bool writeFromBuffer(std::uint64_t address, std::uint32_t size, void* buffer) const = 0;
@@ -89,4 +74,27 @@ public:
     inline bool write(std::uint64_t address, W value) const {
         return writeFromBuffer(address, &value, sizeof(W));
     }
+
+    std::weak_ptr<CModuleList> moduleList() const;
+private:
+    CProcessMemento m_Memento;
+protected:
+    std::shared_ptr<CModuleList> m_ModuleList;
+};
+
+// must be instantiated in IProcessIO context
+class CModuleList final {
+public:
+    CModuleList(IProcessIO* process);
+    ~CModuleList() = default;
+public:
+    void refresh();
+    const std::vector<CModule>& data() const;
+    void cleanup();
+private:
+    void sortByAddress();
+    void sortByName(); // could use Strategy here?
+
+    IProcessIO* m_ThisProcess{ };
+    std::vector<CModule> m_Modules{ };
 };

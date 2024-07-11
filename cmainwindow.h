@@ -38,7 +38,6 @@ private:
 
     std::shared_ptr<CProcessList> m_ProcessList{ std::make_shared<CProcessList>() };
     std::shared_ptr<IProcessIO> m_SelectedProcess{ };
-    std::shared_ptr<CModuleList> m_ModulesList{ };
     int m_SelectedModule{ -1 };
     void selectModule(int idx = -1);
 
@@ -73,7 +72,7 @@ private:
  * add mask for guarded regions
  * add separate class for reading all shit from memory
  * add different types in memory
- * move process selector and module list to separate windows
+ * [/] move process selector and module list to separate windows (will add when i finish working on everything else)
  * [+] sort of processes and modules by names
  * add composition of moduleList to CProcess
  *

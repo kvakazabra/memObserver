@@ -1,6 +1,20 @@
 #include "module.h"
+#include "process.h"
 
 #include <TlHelp32.h>
+
+CSection::CSection(std::uint64_t baseAddress, std::uint32_t size, char* tag)
+    : m_BaseAddress{ baseAddress }
+    , m_Size{ size } {
+    memcpy(m_Tag, tag, 8);
+}
+
+std::tuple<std::uint64_t, std::uint32_t> CSection::info() const {
+    return std::make_tuple(m_BaseAddress, m_Size);
+}
+const char* CSection::tag() const {
+    return m_Tag;
+}
 
 CModuleMemento::CModuleMemento(const std::uint64_t baseAddress, const std::uint32_t size, const std::string& name)
     : m_BaseAddress{ baseAddress }, m_Size{ size }, m_Name{ name } { }
@@ -22,7 +36,7 @@ int operator<=>(const CModuleMemento& a1, const CModuleMemento& a2) {
 }
 
 std::string CModuleMemento::format() const {
-    char buffer[256]{ };
+    char buffer[MAX_PATH]{ };
     sprintf_s(buffer, "%s", m_Name.c_str());
     return std::string(buffer);
 }
@@ -35,57 +49,41 @@ const std::string& CModuleMemento::name() const {
     return m_Name;
 }
 
-CModuleList::CModuleList(std::weak_ptr<CProcess> process)
-    : m_Process{ process } {
-    refresh();
+CModule::CModule(const CModuleMemento& module, IProcessIO* process)
+    : m_Memento{ module }, m_ThisProcess{ process } {
+    if(!m_ThisProcess)
+        throw std::runtime_error("m_ThisProcess can not be a nullptr");
+
+    //printf("[CModule] Instantiated %s module\n", m_Memento.name().c_str());
+    parseSections();
 }
 
-CModuleList::~CModuleList() {
-    cleanup();
-}
+void CModule::parseSections() {
+    auto [baseAddress, size] = memento().info();
 
-void CModuleList::refresh() {
-    cleanup();
-
-    if(m_Process.expired())
+    auto buffer{ std::make_unique_for_overwrite<std::uint8_t[]>(0x1000) };
+    if(!buffer)
         return;
 
-    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, m_Process.lock()->memento().id());
-    if(!Utilities::isHandleValid(snapshot))
+    if(!m_ThisProcess->readToBuffer(baseAddress, 0x1000, buffer.get()))
         return;
 
-    MODULEENTRY32 entry{ };
-    entry.dwSize = sizeof(MODULEENTRY32);
+    PIMAGE_DOS_HEADER dosHeader{ reinterpret_cast<PIMAGE_DOS_HEADER>(buffer.get()) };
+    if(dosHeader->e_magic != 0x5a4d) // MZ signature
+        return;
 
-    if(Module32First(snapshot, &entry)) {
-        do {
-            std::wstring wName = std::wstring(entry.szModule);
-            m_Modules.emplace_back(
-                reinterpret_cast<std::uint64_t>(entry.modBaseAddr),
-                static_cast<std::uint32_t>(entry.modBaseSize),
-                std::string(wName.begin(), wName.end())
-                );
-        } while(Module32Next(snapshot, &entry));
+    PIMAGE_NT_HEADERS64 ntHeaders{ reinterpret_cast<PIMAGE_NT_HEADERS64>(buffer.get() + dosHeader->e_lfanew) };
+    if(ntHeaders->Signature != 0x4550) // PE signature
+        return;
+
+    PIMAGE_SECTION_HEADER sections{ IMAGE_FIRST_SECTION(ntHeaders) };
+    for(int i = 0; i < ntHeaders->FileHeader.NumberOfSections; ++i) {
+        IMAGE_SECTION_HEADER section = sections[i];
+        std::uint64_t sectionBaseAddress = baseAddress + section.VirtualAddress;
+        m_Sections.emplace_back(sectionBaseAddress, section.SizeOfRawData, reinterpret_cast<char*>(section.Name));
     }
-
-    //sortByAddress();
-    sortByName();
 }
 
-const std::vector<CModuleMemento>& CModuleList::data() const {
-    return m_Modules;
-}
-
-void CModuleList::cleanup() {
-    m_Modules.clear();
-}
-
-void CModuleList::sortByName() {
-    std::sort(m_Modules.begin(), m_Modules.end(), [](const CModuleMemento& m1, const CModuleMemento& m2) -> bool {
-        return m1.name() < m2.name();
-    });
-}
-
-void CModuleList::sortByAddress() {
-    std::sort(m_Modules.begin(), m_Modules.end());
+const CModuleMemento& CModule::memento() const {
+    return m_Memento;
 }

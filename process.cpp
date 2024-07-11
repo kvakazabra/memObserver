@@ -45,9 +45,6 @@ const std::string& CProcessMemento::description() const {
 CProcessList::CProcessList() {
     refresh();
 }
-CProcessList::~CProcessList() {
-    cleanup();
-}
 
 void CProcessList::refresh() {
     cleanup();
@@ -88,49 +85,15 @@ void CProcessList::sortByName() {
     });
 }
 
-CProcess::CProcess(std::uint32_t id)
-    : CProcess(CProcessMemento(id, "")) { }
+IProcessIO::IProcessIO(std::uint32_t id)
+    : IProcessIO(CProcessMemento(id, "")) { }
 
-CProcess::CProcess(const CProcessMemento& process)
+IProcessIO::IProcessIO(const CProcessMemento& process)
     : m_Memento{ process } {
-    tryAttach();
-    printf("Attaching: %s\n", m_Memento.name().c_str());
 }
 
-CProcess::~CProcess() {
-    detach();
-    printf("Detaching: %s\n", m_Memento.name().c_str());
-}
-
-HANDLE CProcess::handle() const {
-    return m_Handle;
-}
-
-const CProcessMemento& CProcess::memento() const {
+const CProcessMemento& IProcessIO::memento() const {
     return m_Memento;
-}
-
-bool CProcess::isAttached() const {
-    return Utilities::isHandleValid(handle());
-}
-
-bool CProcess::tryAttach() {
-    if(GetProcessId(GetCurrentProcess()) == m_Memento.id())
-        return false;
-
-    m_Handle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, m_Memento.id());
-    if(!isAttached())
-        return false;
-
-    return true;
-}
-
-void CProcess::detach() {
-    if(!isAttached())
-        return;
-
-    CloseHandle(m_Handle);
-    m_Handle = INVALID_HANDLE_VALUE;
 }
 
 bool IProcessIO::readPages(std::uint64_t startAddress, std::uint32_t size, std::uint8_t* buffer, std::uint8_t* invalidMask) {
@@ -165,4 +128,62 @@ bool IProcessIO::readPages(std::uint64_t startAddress, std::uint32_t size, std::
         remainingSize -= toReadSize;
         offset += toReadSize;
     }
+    return true;
+}
+
+std::weak_ptr<CModuleList> IProcessIO::moduleList() const {
+    return m_ModuleList;
+}
+
+CModuleList::CModuleList(IProcessIO* process)
+    : m_ThisProcess{ process } {
+    if(!m_ThisProcess)
+        throw std::runtime_error("m_ThisProcess can not be nullptr");
+
+    refresh();
+}
+
+void CModuleList::refresh() {
+    cleanup();
+
+    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, m_ThisProcess->memento().id());
+    if(!Utilities::isHandleValid(snapshot))
+        return;
+
+    MODULEENTRY32 entry{ };
+    entry.dwSize = sizeof(MODULEENTRY32);
+
+    if(Module32First(snapshot, &entry)) {
+        do {
+            std::wstring wName = std::wstring(entry.szModule);
+            m_Modules.emplace_back(CModuleMemento(
+                                       reinterpret_cast<std::uint64_t>(entry.modBaseAddr),
+                                       static_cast<std::uint32_t>(entry.modBaseSize),
+                                       std::string(wName.begin(), wName.end()
+                                                   )), m_ThisProcess);
+        } while(Module32Next(snapshot, &entry));
+    }
+
+    //sortByAddress();
+    sortByName();
+}
+
+const std::vector<CModule>& CModuleList::data() const {
+    return m_Modules;
+}
+
+void CModuleList::cleanup() {
+    m_Modules.clear();
+}
+
+void CModuleList::sortByName() {
+    std::sort(m_Modules.begin(), m_Modules.end(), [](const CModule& m1, const CModule& m2) -> bool {
+        return m1.memento().name() < m2.memento().name();
+    });
+}
+
+void CModuleList::sortByAddress() {
+    std::sort(m_Modules.begin(), m_Modules.end(), [](const CModule& m1, const CModule& m2) -> bool {
+        return std::get<0>(m1.memento().info()) < std::get<0>(m2.memento().info());
+    });
 }

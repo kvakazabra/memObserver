@@ -3,6 +3,7 @@
 #include <QString>
 #include <Windows.h>
 #include <array>
+#include <stdexcept>
 
 class IFormattable {
 public:

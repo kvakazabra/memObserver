@@ -1,21 +1,19 @@
 #pragma once
 #include "utilities.h"
-#include "process.h"
 
 #include <Windows.h>
 #include <vector>
 
 class CSection {
 public:
-    CSection(std::uint64_t baseAddress, std::uint32_t size, char* tag, std::uint32_t protection);
+    CSection(std::uint64_t baseAddress, std::uint32_t size, char* tag);
 
-
+    std::tuple<std::uint64_t, std::uint32_t> info() const;
     const char* tag() const;
 private:
     std::uint64_t m_BaseAddress{ };
     std::uint32_t m_Size{ };
     char m_Tag[9]{ };
-    std::uint32_t m_Protection;
 };
 
 class CModuleMemento final : public IFormattable {
@@ -36,27 +34,25 @@ public:
     std::tuple<std::uint64_t, std::uint32_t> info() const;
     const std::string& name() const;
 private:
-    void parseSections();
-
     std::uint64_t m_BaseAddress{ };
     std::uint32_t m_Size{ };
     std::string m_Name{ };
 };
 
-class CModuleList final {
-public:
-    CModuleList(std::weak_ptr<CProcess> process);
-    ~CModuleList();
+class IProcessIO;
 
-    // copy/move later
+class CModule {
 public:
-    void refresh();
-    const std::vector<CModuleMemento>& data() const;
-    void cleanup();
+    // it should be created within a context of a IProcessIO
+    CModule(const CModuleMemento& module, IProcessIO* process);
+    ~CModule() = default;
+public:
+    const CModuleMemento& memento() const;
+    const std::vector<CSection>& sections() const;
 private:
-    void sortByAddress();
-    void sortByName(); // could use Strategy here?
+    void parseSections();
 
-    std::weak_ptr<CProcess> m_Process{ };
-    std::vector<CModuleMemento> m_Modules{ };
+    CModuleMemento m_Memento;
+    IProcessIO* m_ThisProcess{ };
+    std::vector<CSection> m_Sections{ };
 };
