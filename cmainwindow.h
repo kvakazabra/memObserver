@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QMainWindow>
+#include <QListWidgetItem>
 #include "process.h"
 #include "module.h"
 
@@ -24,6 +25,9 @@ private slots:
 
     void on_modulesRefreshButton_clicked();
     void on_modulesList_currentRowChanged(int currentRow);
+    void on_sectionsList_currentRowChanged(int currentRow);
+    void on_sectionsListGoToButton_clicked();
+    void on_sectionsList_itemDoubleClicked(QListWidgetItem *item);
 
     void on_memoryVScrollBar_valueChanged(int value);
     void on_memoryStartAddress_textChanged(const QString &arg1);
@@ -31,6 +35,7 @@ private slots:
 
     void onModuleInfoFormatChanged();
     void onMemoryAddressFormatChanged();
+
 private:
     Ui::CMainWindow *ui;
     void connectButtons();
@@ -38,13 +43,17 @@ private:
 
     std::shared_ptr<CProcessList> m_ProcessList{ std::make_shared<CProcessList>() };
     std::shared_ptr<IProcessIO> m_SelectedProcess{ };
-    int m_SelectedModule{ -1 };
+    int m_SelectedModule{ -1 }, m_SelectedSection{ -1 };
     void selectModule(int idx = -1);
+    const CSection& getSelectedSection();
+    void selectSection(int idx = -1);
+    void goToSelectedSection();
 
     void updateProcessesCombo();
     void updateProcessLastLabel(const QString& message);
     void updateCurrentProcessLabel(const CProcessMemento& process = CProcessMemento(0, "none"));
     void updateModuleInfoLines();
+    void updateSectionInfoLines();
 
     void onProcessAttach();
     void onProcessDetach();

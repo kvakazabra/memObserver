@@ -57,6 +57,10 @@ CModule::CModule(const CModuleMemento& module, IProcessIO* process)
     parseSections();
 }
 
+const std::vector<CSection>& CModule::sections() const {
+    return m_Sections;
+}
+
 void CModule::parseSections() {
     auto [baseAddress, size] = memento().info();
 

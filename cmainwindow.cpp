@@ -99,6 +99,9 @@ void CMainWindow::onProcessDetach() {
     m_MemoryStartAddress = { };
     m_MemoryOffset = { };
 
+    ui->sectionsList->clear();
+    selectSection(-1);
+
     ui->modulesList->clear();
     selectModule(-1);
 
@@ -109,6 +112,37 @@ void CMainWindow::onProcessDetach() {
 void CMainWindow::selectModule(int idx) {
     m_SelectedModule = idx;
     updateModuleInfoLines();
+}
+
+void CMainWindow::selectSection(int idx) {
+    m_SelectedSection = idx;
+    updateSectionInfoLines();
+}
+
+const CSection& CMainWindow::getSelectedSection() {
+    if(m_SelectedSection == -1)
+        throw std::runtime_error("Check m_SelectedSection for -1 before calling getSelectedSection");
+
+    if(m_SelectedProcess->moduleList().expired())
+        throw std::runtime_error("Expired std::weak_ptr<CModuleList>, this should not happen");
+
+    const auto& selectedModule = m_SelectedProcess->moduleList().lock()->data()[m_SelectedModule];
+    if(m_SelectedSection >= selectedModule.sections().size())
+        throw std::runtime_error("Error: m_SelectedSection >= sections.size()");
+
+    return selectedModule.sections()[m_SelectedSection];
+}
+
+void CMainWindow::goToSelectedSection() {
+    if(m_SelectedSection == -1)
+        return;
+
+    const auto baseAddress = std::get<0>(getSelectedSection().info());
+
+    ui->memoryStartAddress->setText(QString::number(baseAddress, 16));
+    m_MemoryStartAddress = baseAddress;
+    m_MemoryOffset = { };
+    updateMemoryDataEdit();
 }
 
 void CMainWindow::on_modulesRefreshButton_clicked() {
@@ -122,7 +156,21 @@ void CMainWindow::on_modulesRefreshButton_clicked() {
     m_SelectedProcess->moduleList().lock()->refresh();
 }
 
+void CMainWindow::updateSectionInfoLines() {
+    if(m_SelectedSection == -1) {
+        ui->sectionInfoBaseAddressLine->setText("");
+        ui->sectionInfoSizeLine->setText("");
+        return;
+    }
+
+    const auto [baseAddress, size] = getSelectedSection().info();
+    ui->sectionInfoBaseAddressLine->setText(QString::number(baseAddress, 16));
+    ui->sectionInfoSizeLine->setText(QString::number(size, 16));
+}
+
 void CMainWindow::updateModuleInfoLines() {
+    ui->sectionsList->clear();
+
     if(m_SelectedModule == -1) {
         ui->moduleInfoNameLine->setText("");
         ui->moduleInfoBaseAddressLine->setText("");
@@ -134,7 +182,6 @@ void CMainWindow::updateModuleInfoLines() {
         throw std::runtime_error("Expired std::weak_ptr<CModuleList>, this should not happen");
 
     const auto modulesData = m_SelectedProcess->moduleList().lock()->data();
-
     if(m_SelectedModule >= modulesData.size())
         throw std::runtime_error("Error: m_SelectedModule >= modulesData.size()");
 
@@ -146,10 +193,18 @@ void CMainWindow::updateModuleInfoLines() {
     ui->moduleInfoNameLine->setText(QString(selectedModule.memento().name().c_str()));
     ui->moduleInfoBaseAddressLine->setText(QString::number(baseAddress, base));
     ui->moduleInfoSizeLine->setText(QString::number(size, base));
+
+    for(auto& section : selectedModule.sections()) {
+        ui->sectionsList->addItem(QString(section.tag()));
+    }
 }
 
 void CMainWindow::on_modulesList_currentRowChanged(int currentRow) {
     selectModule(currentRow);
+}
+
+void CMainWindow::on_sectionsList_currentRowChanged(int currentRow) {
+    selectSection(currentRow);
 }
 
 void CMainWindow::onModuleInfoFormatChanged() {
@@ -249,5 +304,16 @@ void CMainWindow::onMemoryAddressFormatChanged() {
 void CMainWindow::on_memoryResetOffsetButton_clicked() {
     m_MemoryOffset = { };
     updateMemoryDataEdit();
+}
+
+
+void CMainWindow::on_sectionsListGoToButton_clicked() {
+    goToSelectedSection();
+}
+
+
+void CMainWindow::on_sectionsList_itemDoubleClicked(QListWidgetItem *item) {
+    selectSection(item->listWidget()->row(item));
+    goToSelectedSection();
 }
 
