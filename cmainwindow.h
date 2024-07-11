@@ -63,4 +63,22 @@ private:
  * process list -> refresh, combobox, (maybe) button to attach
  * modules list -> refresh, list widget, on right click on item context menu (copy address, copy dll name), on select maybe dump sections info
  * address dumper -> line edit with address, auto refresh, text edit with vertical scroll
+ *
+ * TODO:
+ * sections info for each module
+ * move each class to individual files
+ * expand page protection info
+ * add buttons to change page protection
+ * add mask for guarded regions
+ * add separate class for reading all shit from memory
+ * add different types in memory
+ * move process selector and module list to separate windows
+ *
+ * take into consideration AllocationBase and AllocationSize in MBI
+ * real-time update of memory via multithreading
+ *
+ * try coloring text (read only memory = green for example as in CE)
+ *
+ * maybe:
+ * async loading of all modules (idk why i thought about that, even on a potato pc itd still be fast enough), p.s. but practicing std::async would be nice
 */

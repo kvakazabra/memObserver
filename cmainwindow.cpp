@@ -145,21 +145,65 @@ void CMainWindow::onModuleInfoFormatChanged() {
     updateModuleInfoLines();
 }
 
+void readData(HANDLE hProcess, std::uint64_t startAddress, std::uint32_t size, std::uint8_t* buffer, std::uint8_t* invalidMask = std::nullptr_t()) {
+    std::uint32_t remainingSize{ size }, offset{ 0 };
+    int p{ }; // protect against deadloop
+    while(remainingSize && ++p < 100) {
+        std::uint64_t currentAddress = startAddress + offset;
+        MEMORY_BASIC_INFORMATION mbi{ };
+        if(!VirtualQueryEx(hProcess, reinterpret_cast<LPCVOID>(currentAddress), &mbi, sizeof(MEMORY_BASIC_INFORMATION))) {
+            printf("Critical: VirtualQueryEx failed (%d)\n", GetLastError());
+            return;
+        }
+
+        std::uint64_t pageEndAddress = reinterpret_cast<std::uint64_t>(mbi.BaseAddress) + mbi.RegionSize;
+        std::uint32_t toReadSize = pageEndAddress - currentAddress;
+        if(toReadSize > remainingSize)
+            toReadSize = remainingSize;
+
+        if(bool guarded = mbi.Protect & PAGE_GUARD; mbi.Protect & PAGE_NOACCESS || guarded) {
+            for(std::size_t i = offset; i < toReadSize && invalidMask; ++i) {
+                invalidMask[i] = guarded ? 2 : 1; // mark invalid bytes as "??" (like in windbg)
+            }
+            remainingSize -= toReadSize;
+            offset += toReadSize;
+            continue;
+        }
+
+        ReadProcessMemory(hProcess, reinterpret_cast<LPCVOID>(currentAddress), buffer + offset, toReadSize, std::nullptr_t());
+
+        remainingSize -= toReadSize;
+        offset += toReadSize;
+    }
+}
+
 void CMainWindow::updateMemoryDataEdit() {
     ui->memoryDataEdit->clear();
+    ui->memoryPageInfoLabel->clear();
     if(!m_SelectedProcess)
         return;
 
-    std::uint8_t* buffer = new std::uint8_t[c_MemoryBufferSize]{ };
+    std::uint8_t* buffer = new std::uint8_t[c_MemoryBufferSize]{ }, *invalidMask = new std::uint8_t[c_MemoryBufferSize]{ };
     std::uint64_t currentAddress = m_MemoryStartAddress + m_MemoryOffset;
-    SIZE_T readBytes{ };
 
-    ReadProcessMemory(m_SelectedProcess->handle(), reinterpret_cast<LPCVOID>(currentAddress), buffer, c_MemoryBufferSize, &readBytes);
-    // printf("%d\n", readBytes);
+    readData(m_SelectedProcess->handle(), currentAddress, c_MemoryBufferSize, buffer, invalidMask);
+
+    MEMORY_BASIC_INFORMATION bmbi{ };
+    VirtualQueryEx(m_SelectedProcess->handle(), reinterpret_cast<LPCVOID>(currentAddress), &bmbi, sizeof(MEMORY_BASIC_INFORMATION));
+
+    MBIEx mbi{ bmbi };
+    ui->memoryPageInfoLabel->setText(QString("Page Info: ") + QString(mbi.format().c_str()));
+
     for(std::size_t i = 0; i < c_MemoryRows; ++i) {
         QString bytesRow{ };
         for(std::size_t j = 0; j < c_MemoryBytesInRow; ++j) {
-            char b[8]{ };
+            static char invalidByte[4]{"?? "};
+            if(invalidMask[i * c_MemoryBytesInRow + j]) {
+                bytesRow += invalidByte;
+                continue;
+            }
+
+            char b[4]{ };
             sprintf_s(b, "%02x ", buffer[i * c_MemoryBytesInRow + j]);
             bytesRow += b;
         }
@@ -171,9 +215,10 @@ void CMainWindow::updateMemoryDataEdit() {
                 std::int32_t currentOffset = m_MemoryOffset + static_cast<std::int32_t>(i * c_MemoryBytesInRow);
                 bool isNegative{ currentOffset < 0 };
                 if(;isNegative) {
-                    currentOffset = std::abs(currentOffset);
+                    sprintf_s(locationBuffer, "-%04x:", std::abs(currentOffset));
+                    return;
                 }
-                sprintf_s(locationBuffer, "%s%04x: ", isNegative ? "-" : "", currentOffset);
+                sprintf_s(locationBuffer, "%05x:", currentOffset);
             } else { // abs format
                 sprintf_s(locationBuffer, "%llx: ", currentAddress + i * c_MemoryBytesInRow);
             }
