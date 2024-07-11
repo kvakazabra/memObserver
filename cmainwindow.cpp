@@ -18,6 +18,9 @@ void CMainWindow::setupTextures() {
 void CMainWindow::connectButtons() {
     QObject::connect(ui->moduleInfoDecimalButton, SIGNAL(clicked()), this, SLOT(onModuleInfoFormatChanged()));
     QObject::connect(ui->moduleInfoHexadecimalButton, SIGNAL(clicked()), this, SLOT(onModuleInfoFormatChanged()));
+
+    QObject::connect(ui->memoryOffsetAbsoluteButton, SIGNAL(clicked()), this, SLOT(onMemoryAddressFormatChanged()));
+    QObject::connect(ui->memoryOffsetRelativeButton, SIGNAL(clicked()), this, SLOT(onMemoryAddressFormatChanged()));
 }
 
 CMainWindow::CMainWindow(QWidget *parent)
@@ -31,6 +34,7 @@ CMainWindow::CMainWindow(QWidget *parent)
 
     updateProcessesCombo();
     updateCurrentProcessLabel();
+    updateMemoryDataEdit();
 }
 
 CMainWindow::~CMainWindow() {
@@ -141,4 +145,73 @@ void CMainWindow::onModuleInfoFormatChanged() {
     updateModuleInfoLines();
 }
 
+void CMainWindow::updateMemoryDataEdit() {
+    ui->memoryDataEdit->clear();
+    if(!m_SelectedProcess)
+        return;
+
+    std::uint8_t* buffer = new std::uint8_t[c_MemoryBufferSize]{ };
+    std::uint64_t currentAddress = m_MemoryStartAddress + m_MemoryOffset;
+    SIZE_T readBytes{ };
+
+    ReadProcessMemory(m_SelectedProcess->handle(), reinterpret_cast<LPCVOID>(currentAddress), buffer, c_MemoryBufferSize, &readBytes);
+    // printf("%d\n", readBytes);
+    for(std::size_t i = 0; i < c_MemoryRows; ++i) {
+        QString bytesRow{ };
+        for(std::size_t j = 0; j < c_MemoryBytesInRow; ++j) {
+            char b[8]{ };
+            sprintf_s(b, "%02x ", buffer[i * c_MemoryBytesInRow + j]);
+            bytesRow += b;
+        }
+
+        char locationBuffer[32]{ };
+        auto formatLocation = [&]() -> void {
+            bool isRelative = ui->memoryOffsetRelativeButton->isChecked();
+            if(isRelative) {
+                std::int32_t currentOffset = m_MemoryOffset + static_cast<std::int32_t>(i * c_MemoryBytesInRow);
+                bool isNegative{ currentOffset < 0 };
+                if(;isNegative) {
+                    currentOffset = std::abs(currentOffset);
+                }
+                sprintf_s(locationBuffer, "%s%04x: ", isNegative ? "-" : "", currentOffset);
+            } else { // abs format
+                sprintf_s(locationBuffer, "%llx: ", currentAddress + i * c_MemoryBytesInRow);
+            }
+        };
+
+        formatLocation();
+        ui->memoryDataEdit->appendPlainText(QString(locationBuffer) + bytesRow);
+    }
+}
+
+void CMainWindow::on_memoryVScrollBar_valueChanged(int value) {
+    static int middleValue =
+        ui->memoryVScrollBar->minimum() +
+        (ui->memoryVScrollBar->maximum() - ui->memoryVScrollBar->minimum()) / 2;
+
+    m_MemoryOffset += (value - middleValue) * c_MemoryBytesInRow;
+    ui->memoryVScrollBar->setValue(middleValue);
+    updateMemoryDataEdit();
+}
+
+void CMainWindow::on_memoryStartAddress_textChanged(const QString &arg1) {
+    bool isOk{ };
+    std::uint64_t address = arg1.toULongLong(&isOk, 16);
+    if(!isOk)
+        return;
+
+    m_MemoryStartAddress = address;
+    m_MemoryOffset = { };
+    updateMemoryDataEdit();
+}
+
+void CMainWindow::onMemoryAddressFormatChanged() {
+    // yeah, i could just use updateMemoryData but this would be easier to understand
+    updateMemoryDataEdit();
+}
+
+void CMainWindow::on_memoryResetOffsetButton_clicked() {
+    m_MemoryOffset = { };
+    updateMemoryDataEdit();
+}
 

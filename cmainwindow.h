@@ -24,7 +24,12 @@ private slots:
     void on_modulesRefreshButton_clicked();
     void on_modulesList_currentRowChanged(int currentRow);
 
+    void on_memoryVScrollBar_valueChanged(int value);
+    void on_memoryStartAddress_textChanged(const QString &arg1);
+    void on_memoryResetOffsetButton_clicked();
+
     void onModuleInfoFormatChanged();
+    void onMemoryAddressFormatChanged();
 private:
     Ui::CMainWindow *ui;
     void connectButtons();
@@ -43,6 +48,15 @@ private:
 
     void onProcessAttach();
     void onProcessDetach();
+
+    std::uint64_t m_MemoryStartAddress{ };
+    std::int32_t m_MemoryOffset{ };
+
+    static constexpr std::size_t c_MemoryBytesInRow{ 8 }; // must be divisible by 4
+    static constexpr std::size_t c_MemoryRows{ 10 };
+    static constexpr std::size_t c_MemoryBufferSize{ c_MemoryBytesInRow * c_MemoryRows };
+
+    void updateMemoryDataEdit();
 };
 
 /*
