@@ -189,6 +189,10 @@ void CMainWindow::on_memoryVScrollBar_valueChanged(int value) {
         ui->memoryVScrollBar->minimum() +
         (ui->memoryVScrollBar->maximum() - ui->memoryVScrollBar->minimum()) / 2;
 
+    if(value == middleValue) {
+        return;
+    }
+
     m_MemoryOffset += (value - middleValue) * c_MemoryBytesInRow;
     ui->memoryVScrollBar->setValue(middleValue);
     updateMemoryDataEdit();
