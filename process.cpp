@@ -102,6 +102,9 @@ bool CProcess::isAttached() const {
     return Utilities::isHandleValid(handle());
 }
 bool CProcess::tryAttach() {
+    if(GetProcessId(GetCurrentProcess()) == m_Memento.id())
+        return false;
+
     m_Handle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, m_Memento.id());
     if(!isAttached())
         return false;
