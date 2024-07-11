@@ -20,12 +20,14 @@ public:
 private slots:
     void on_processRefreshButton_clicked();
     void on_processComboBox_activated(int index);
+
     void on_modulesRefreshButton_clicked();
     void on_modulesList_currentRowChanged(int currentRow);
-    void on_moduleInfoHexadecimalButton_clicked();
-    void on_moduleInfoDecimalButton_clicked();
+
+    void onModuleInfoFormatChanged();
 private:
     Ui::CMainWindow *ui;
+    void connectButtons();
     void setupTextures();
 
     std::shared_ptr<CProcessList> m_ProcessList{ std::make_shared<CProcessList>() };

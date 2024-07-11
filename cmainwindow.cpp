@@ -15,6 +15,11 @@ void CMainWindow::setupTextures() {
         throw std::runtime_error("Failed to load resources");
 }
 
+void CMainWindow::connectButtons() {
+    QObject::connect(ui->moduleInfoDecimalButton, SIGNAL(clicked()), this, SLOT(onModuleInfoFormatChanged()));
+    QObject::connect(ui->moduleInfoHexadecimalButton, SIGNAL(clicked()), this, SLOT(onModuleInfoFormatChanged()));
+}
+
 CMainWindow::CMainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::CMainWindow) {
@@ -22,6 +27,8 @@ CMainWindow::CMainWindow(QWidget *parent)
 
     showConsole();
     setupTextures();
+    connectButtons();
+
     updateProcessesCombo();
     updateCurrentProcessLabel();
 }
@@ -130,11 +137,8 @@ void CMainWindow::on_modulesList_currentRowChanged(int currentRow) {
     selectModule(currentRow);
 }
 
-void CMainWindow::on_moduleInfoHexadecimalButton_clicked() {
+void CMainWindow::onModuleInfoFormatChanged() {
     updateModuleInfoLines();
 }
 
-void CMainWindow::on_moduleInfoDecimalButton_clicked() {
-    updateModuleInfoLines();
-}
 
