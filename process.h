@@ -38,16 +38,17 @@ public:
     const std::vector<CProcessMemento>& data() const;
     void cleanup();
 private:
-    void sortByID();
+    void sortByID(); // can use Strategy here?
+    void sortByName();
 
     std::vector<CProcessMemento> m_Processes{ };
 };
 
-class CProcess final {
+class CProcess {
 public:
     CProcess(const CProcessMemento& process);
     CProcess(std::uint32_t id);
-    ~CProcess();
+    virtual ~CProcess();
 
     bool isAttached() const;
     HANDLE handle() const;
@@ -62,42 +63,30 @@ private:
     HANDLE m_Handle{ INVALID_HANDLE_VALUE };
 };
 
-class CModuleMemento final : public IFormattable {
+class IProcessIO : public CProcess {
 public:
-    CModuleMemento(const std::uint64_t baseAddress, const std::uint32_t size, const std::string& name);
-    virtual ~CModuleMemento() = default;
+    IProcessIO(const CProcessMemento& process) : CProcess{ process } { }
+    IProcessIO(std::uint32_t id) : CProcess{ id } { }
+    virtual ~IProcessIO() = default;
 
-    CModuleMemento(const CModuleMemento&) = default;
-    CModuleMemento& operator=(const CModuleMemento&) = default;
+    virtual bool readToBuffer(std::uint64_t address, std::uint32_t size, void* buffer) const = 0;
+    virtual bool writeFromBuffer(std::uint64_t address, std::uint32_t size, void* buffer) const = 0;
+    virtual MBIEx query(std::uint64_t address) const = 0;
+    // @return Returns true and oldProtect on success, false and 0 otherwise
+    virtual std::tuple<bool, std::uint32_t> protect(std::uint64_t address, std::uint32_t size, std::uint32_t flags) const = 0;
 
-    CModuleMemento(CModuleMemento&& mv);
-    CModuleMemento& operator=(CModuleMemento&& mv);
+    // invalidMask: 0 - regular byte, 1 - invalid (page protection or something else), 2 - guarded byte
+    bool readPages(std::uint64_t startAddress, std::uint32_t size, std::uint8_t* buffer, std::uint8_t* invalidMask = std::nullptr_t());
 
-    friend int operator<=>(const CModuleMemento& a1, const CModuleMemento& a2);
-public:
-    virtual std::string format() const override;
-
-    std::tuple<std::uint64_t, std::uint32_t> info() const;
-    const std::string& name() const;
-private:
-    std::uint64_t m_BaseAddress{ };
-    std::uint32_t m_Size{ };
-    std::string m_Name{ };
-};
-
-class CModuleList final {
-public:
-    CModuleList(std::weak_ptr<CProcess> process);
-    ~CModuleList();
-
-    // copy/move later
-public:
-    void refresh();
-    const std::vector<CModuleMemento>& data() const;
-    void cleanup();
-private:
-    void sortByAddress();
-
-    std::weak_ptr<CProcess> m_Process{ };
-    std::vector<CModuleMemento> m_Modules{ };
+    template<typename R>
+    inline R read(std::uint64_t address) const {
+        R buf{ };
+        if(!readToBuffer(address, &buf, sizeof(R)))
+            return { };
+        return buf;
+    }
+    template<typename W>
+    inline bool write(std::uint64_t address, W value) const {
+        return writeFromBuffer(address, &value, sizeof(W));
+    }
 };

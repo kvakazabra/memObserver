@@ -26,6 +26,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         resources.qrc
         process.h process.cpp
         utilities.h utilities.cpp
+        module.h module.cpp
+        process_win32.h process_win32.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET memObserver APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

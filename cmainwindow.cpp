@@ -1,6 +1,6 @@
 #include "cmainwindow.h"
 #include "./ui_cmainwindow.h"
-
+#include "process_win32.h"
 #include <QPixmap>
 
 void showConsole() {
@@ -73,7 +73,7 @@ void CMainWindow::on_processComboBox_activated(int index) {
         throw std::runtime_error("Out of bounds: m_ProcessList");
 
     onProcessDetach();
-    auto selectedProcess = std::make_shared<CProcess>(m_ProcessList->data()[index]);
+    auto selectedProcess = std::make_shared<CProcessWinIO>(m_ProcessList->data()[index]);
     if(!selectedProcess->isAttached()) {
         updateProcessLastLabel(QString("Failed to attach"));
         return;
@@ -145,38 +145,6 @@ void CMainWindow::onModuleInfoFormatChanged() {
     updateModuleInfoLines();
 }
 
-void readData(HANDLE hProcess, std::uint64_t startAddress, std::uint32_t size, std::uint8_t* buffer, std::uint8_t* invalidMask = std::nullptr_t()) {
-    std::uint32_t remainingSize{ size }, offset{ 0 };
-    int p{ }; // protect against deadloop
-    while(remainingSize && ++p < 100) {
-        std::uint64_t currentAddress = startAddress + offset;
-        MEMORY_BASIC_INFORMATION mbi{ };
-        if(!VirtualQueryEx(hProcess, reinterpret_cast<LPCVOID>(currentAddress), &mbi, sizeof(MEMORY_BASIC_INFORMATION))) {
-            printf("Critical: VirtualQueryEx failed (%d)\n", GetLastError());
-            return;
-        }
-
-        std::uint64_t pageEndAddress = reinterpret_cast<std::uint64_t>(mbi.BaseAddress) + mbi.RegionSize;
-        std::uint32_t toReadSize = pageEndAddress - currentAddress;
-        if(toReadSize > remainingSize)
-            toReadSize = remainingSize;
-
-        if(bool guarded = mbi.Protect & PAGE_GUARD; mbi.Protect & PAGE_NOACCESS || guarded) {
-            for(std::size_t i = offset; i < toReadSize && invalidMask; ++i) {
-                invalidMask[i] = guarded ? 2 : 1; // mark invalid bytes as "??" (like in windbg)
-            }
-            remainingSize -= toReadSize;
-            offset += toReadSize;
-            continue;
-        }
-
-        ReadProcessMemory(hProcess, reinterpret_cast<LPCVOID>(currentAddress), buffer + offset, toReadSize, std::nullptr_t());
-
-        remainingSize -= toReadSize;
-        offset += toReadSize;
-    }
-}
-
 void CMainWindow::updateMemoryDataEdit() {
     ui->memoryDataEdit->clear();
     ui->memoryPageInfoLabel->clear();
@@ -186,13 +154,7 @@ void CMainWindow::updateMemoryDataEdit() {
     std::uint8_t* buffer = new std::uint8_t[c_MemoryBufferSize]{ }, *invalidMask = new std::uint8_t[c_MemoryBufferSize]{ };
     std::uint64_t currentAddress = m_MemoryStartAddress + m_MemoryOffset;
 
-    readData(m_SelectedProcess->handle(), currentAddress, c_MemoryBufferSize, buffer, invalidMask);
-
-    MEMORY_BASIC_INFORMATION bmbi{ };
-    VirtualQueryEx(m_SelectedProcess->handle(), reinterpret_cast<LPCVOID>(currentAddress), &bmbi, sizeof(MEMORY_BASIC_INFORMATION));
-
-    MBIEx mbi{ bmbi };
-    ui->memoryPageInfoLabel->setText(QString("Page Info: ") + QString(mbi.format().c_str()));
+    m_SelectedProcess->readPages(currentAddress, c_MemoryBufferSize, buffer, invalidMask);
 
     for(std::size_t i = 0; i < c_MemoryRows; ++i) {
         QString bytesRow{ };
@@ -227,6 +189,20 @@ void CMainWindow::updateMemoryDataEdit() {
         formatLocation();
         ui->memoryDataEdit->appendPlainText(QString(locationBuffer) + bytesRow);
     }
+
+    ui->memoryDataEdit->appendPlainText(QString("--------------------"));
+
+    MBIEx mbi{ m_SelectedProcess->query(currentAddress) };
+    ui->memoryDataEdit->appendPlainText(QString("Page Base and Size: ") +
+                                        QString::number(reinterpret_cast<std::uint64_t>(mbi.BaseAddress), 16) +
+                                        QString(" - ") +
+                                        QString::number(mbi.RegionSize, 16));
+    ui->memoryDataEdit->appendPlainText(QString("Page Protection: ") +
+                                        QString(mbi.format().c_str()));
+    // ui->memoryDataEdit->appendPlainText(QString("Allocation Base and Size: ") +
+    //                                     QString::number(reinterpret_cast<std::uint64_t>(mbi.AllocationBase), 16) +
+    //                                     QString(" - ") +
+    //                                     QString::number(mbi.RegionSize, 16));
 }
 
 void CMainWindow::on_memoryVScrollBar_valueChanged(int value) {

@@ -9,8 +9,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>748</width>
-    <height>589</height>
+    <width>1092</width>
+    <height>602</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -141,8 +141,8 @@
    <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>280</y>
+      <x>20</x>
+      <y>120</y>
       <width>451</width>
       <height>261</height>
      </rect>
@@ -438,7 +438,7 @@
    <widget class="QLineEdit" name="memoryStartAddress">
     <property name="geometry">
      <rect>
-      <x>430</x>
+      <x>720</x>
       <y>20</y>
       <width>161</width>
       <height>24</height>
@@ -451,7 +451,7 @@
    <widget class="QCheckBox" name="checkBox">
     <property name="geometry">
      <rect>
-      <x>600</x>
+      <x>890</x>
       <y>20</y>
       <width>141</width>
       <height>22</height>
@@ -473,7 +473,7 @@
    <widget class="QPushButton" name="memoryResetOffsetButton">
     <property name="geometry">
      <rect>
-      <x>340</x>
+      <x>630</x>
       <y>20</y>
       <width>80</width>
       <height>24</height>
@@ -486,7 +486,7 @@
    <widget class="QGroupBox" name="groupBox_2">
     <property name="geometry">
      <rect>
-      <x>230</x>
+      <x>520</x>
       <y>120</y>
       <width>91</width>
       <height>81</height>
@@ -495,7 +495,7 @@
     <property name="title">
      <string>Offset Format</string>
     </property>
-    <widget class="QWidget" name="">
+    <widget class="QWidget" name="layoutWidget">
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -528,8 +528,8 @@
    <widget class="QLabel" name="memoryPageInfoLabel">
     <property name="geometry">
      <rect>
-      <x>360</x>
-      <y>240</y>
+      <x>330</x>
+      <y>430</y>
       <width>221</width>
       <height>16</height>
      </rect>
@@ -544,13 +544,13 @@
      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Page Info:&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
     </property>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>350</x>
+      <x>640</x>
       <y>50</y>
       <width>371</width>
-      <height>181</height>
+      <height>241</height>
      </rect>
     </property>
     <layout class="QHBoxLayout" name="horizontalLayout_6">
@@ -599,7 +599,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>748</width>
+     <width>1092</width>
      <height>21</height>
     </rect>
    </property>

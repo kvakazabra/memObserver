@@ -2,6 +2,7 @@
 
 #include <QMainWindow>
 #include "process.h"
+#include "module.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -36,7 +37,7 @@ private:
     void setupTextures();
 
     std::shared_ptr<CProcessList> m_ProcessList{ std::make_shared<CProcessList>() };
-    std::shared_ptr<CProcess> m_SelectedProcess{ };
+    std::shared_ptr<IProcessIO> m_SelectedProcess{ };
     std::shared_ptr<CModuleList> m_ModulesList{ };
     int m_SelectedModule{ -1 };
     void selectModule(int idx = -1);
@@ -53,7 +54,7 @@ private:
     std::int32_t m_MemoryOffset{ };
 
     static constexpr std::size_t c_MemoryBytesInRow{ 8 }; // must be divisible by 4
-    static constexpr std::size_t c_MemoryRows{ 10 };
+    static constexpr std::size_t c_MemoryRows{ 12 };
     static constexpr std::size_t c_MemoryBufferSize{ c_MemoryBytesInRow * c_MemoryRows };
 
     void updateMemoryDataEdit();
@@ -66,18 +67,22 @@ private:
  *
  * TODO:
  * sections info for each module
- * move each class to individual files
+ * [+] move each class to individual files
  * expand page protection info
  * add buttons to change page protection
  * add mask for guarded regions
  * add separate class for reading all shit from memory
  * add different types in memory
  * move process selector and module list to separate windows
+ * [+] sort of processes and modules by names
+ * add composition of moduleList to CProcess
  *
  * take into consideration AllocationBase and AllocationSize in MBI
  * real-time update of memory via multithreading
  *
  * try coloring text (read only memory = green for example as in CE)
+ *
+ * [+] CProcessIO -> make an interface for read/write
  *
  * maybe:
  * async loading of all modules (idk why i thought about that, even on a potato pc itd still be fast enough), p.s. but practicing std::async would be nice
