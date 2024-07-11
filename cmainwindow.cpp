@@ -94,6 +94,9 @@ void CMainWindow::onProcessAttach() {
 }
 
 void CMainWindow::onProcessDetach() {
+    m_MemoryStartAddress = { };
+    m_MemoryOffset = { };
+
     ui->modulesList->clear();
     m_ModulesList.reset();
 
@@ -159,10 +162,11 @@ void CMainWindow::updateMemoryDataEdit() {
     for(std::size_t i = 0; i < c_MemoryRows; ++i) {
         QString bytesRow{ };
         for(std::size_t j = 0; j < c_MemoryBytesInRow; ++j) {
-            static char invalidByte[4]{"?? "};
-            if(invalidMask[i * c_MemoryBytesInRow + j]) {
-                bytesRow += invalidByte;
-                continue;
+            static char invalidByte[4]{"?? "}, guardedByte[4]{"xx "};
+            switch(invalidMask[i * c_MemoryBytesInRow + j]) {
+            case 1: bytesRow += invalidByte; continue;
+            case 2: bytesRow += guardedByte; continue;
+            default: break;
             }
 
             char b[4]{ };
