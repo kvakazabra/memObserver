@@ -158,7 +158,6 @@ void CMainWindow::onModuleInfoFormatChanged() {
 
 void CMainWindow::updateMemoryDataEdit() {
     ui->memoryDataEdit->clear();
-    ui->memoryPageInfoLabel->clear();
     if(!m_SelectedProcess)
         return;
 
