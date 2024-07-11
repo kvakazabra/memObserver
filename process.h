@@ -51,15 +51,13 @@ public:
 
     bool isAttached() const;
     HANDLE handle() const;
-    const std::string& name() const; // todo maybe just compose CProcessMemento here?
-    std::uint32_t id() const;
-    // memento get
+
+    const CProcessMemento& memento() const;
 private:
     bool tryAttach();
     void detach();
 
-    std::uint32_t m_Id{ };
-    std::string m_Name{ };
+    CProcessMemento m_Memento;
 
     HANDLE m_Handle{ INVALID_HANDLE_VALUE };
 };

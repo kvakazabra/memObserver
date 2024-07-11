@@ -73,8 +73,8 @@ void CMainWindow::on_processComboBox_activated(int index) {
 }
 
 void CMainWindow::onProcessAttach() {
-    updateProcessLastLabel(QString("Attached to ") + QString(m_SelectedProcess->name().c_str()) + QString(" successfully"));
-    updateCurrentProcessLabel(CProcessMemento(m_SelectedProcess->id(), m_SelectedProcess->name())); // TODO (seriously): compose a fucking memento into a fucking process, this is the third time I needed it
+    updateProcessLastLabel(QString("Attached to ") + QString(m_SelectedProcess->memento().name().c_str()) + QString(" successfully"));
+    updateCurrentProcessLabel(m_SelectedProcess->memento());
 
     m_ModulesList = std::make_shared<CModuleList>(m_SelectedProcess);
     for(auto& module : m_ModulesList->data()) {

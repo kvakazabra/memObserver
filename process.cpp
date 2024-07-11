@@ -82,31 +82,27 @@ void CProcessList::sortByID() {
 CProcess::CProcess(std::uint32_t id)
     : CProcess(CProcessMemento(id, "")) { }
 CProcess::CProcess(const CProcessMemento& process)
-    : m_Id{ process.id() }
-    , m_Name{ process.name() } {
+    : m_Memento{ process } {
     tryAttach();
-    printf("Attaching: %s\n", m_Name.c_str());
+    printf("Attaching: %s\n", m_Memento.name().c_str());
 }
 CProcess::~CProcess() {
     detach();
-    printf("Detaching: %s\n", m_Name.c_str());
+    printf("Detaching: %s\n", m_Memento.name().c_str());
 }
 
 HANDLE CProcess::handle() const {
     return m_Handle;
 }
-const std::string& CProcess::name() const {
-    return m_Name;
-}
-std::uint32_t CProcess::id() const {
-    return m_Id;
-}
 
+const CProcessMemento& CProcess::memento() const {
+    return m_Memento;
+}
 bool CProcess::isAttached() const {
     return Utilities::isHandleValid(handle());
 }
 bool CProcess::tryAttach() {
-    m_Handle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, m_Id);
+    m_Handle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, m_Memento.id());
     if(!isAttached())
         return false;
 
@@ -164,7 +160,7 @@ void CModuleList::refresh() {
     if(m_Process.expired())
         return;
 
-    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, m_Process.lock()->id());
+    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, m_Process.lock()->memento().id());
     if(!Utilities::isHandleValid(snapshot))
         return;
 
