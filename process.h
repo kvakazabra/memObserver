@@ -12,8 +12,8 @@ public:
     CProcessMemento(const CProcessMemento&) = default;
     CProcessMemento& operator=(const CProcessMemento&) = default;
 
-    CProcessMemento(CProcessMemento&& mv);
-    CProcessMemento& operator=(CProcessMemento&& mv);
+    CProcessMemento(CProcessMemento&& mv) noexcept;
+    CProcessMemento& operator=(CProcessMemento&& mv) noexcept;
 
     friend int operator<=>(const CProcessMemento& a1, const CProcessMemento& a2);
 public:

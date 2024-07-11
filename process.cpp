@@ -6,11 +6,11 @@ CProcessMemento::CProcessMemento(const std::uint32_t id, const std::string& name
     : m_Id{ id }
     , m_Name{ name } { }
 
-CProcessMemento::CProcessMemento(CProcessMemento &&mv) {
+CProcessMemento::CProcessMemento(CProcessMemento &&mv) noexcept {
     *this = std::move(mv);
 };
 
-CProcessMemento& CProcessMemento::operator=(CProcessMemento&& mv) {
+CProcessMemento& CProcessMemento::operator=(CProcessMemento&& mv) noexcept {
     this->m_Id = mv.m_Id;
     this->m_Name = std::move(mv.m_Name);
     this->m_Description = std::move(mv.m_Description);

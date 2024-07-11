@@ -6,9 +6,7 @@ bool Utilities::isHandleValid(HANDLE h) {
 
 
 MBIEx::MBIEx(const MEMORY_BASIC_INFORMATION& a1)
-    : MEMORY_BASIC_INFORMATION{ a1 } {
-
-}
+    : MEMORY_BASIC_INFORMATION{ a1 } { }
 
 std::string MBIEx::format() const {
     static std::unordered_map<int, const std::string> protectionTranslations{

@@ -24,8 +24,8 @@ public:
     CModuleMemento(const CModuleMemento&) = default;
     CModuleMemento& operator=(const CModuleMemento&) = default;
 
-    CModuleMemento(CModuleMemento&& mv);
-    CModuleMemento& operator=(CModuleMemento&& mv);
+    CModuleMemento(CModuleMemento&& mv) noexcept;
+    CModuleMemento& operator=(CModuleMemento&& mv) noexcept;
 
     friend int operator<=>(const CModuleMemento& a1, const CModuleMemento& a2);
 public:

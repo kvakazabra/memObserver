@@ -19,11 +19,11 @@ const char* CSection::tag() const {
 CModuleMemento::CModuleMemento(const std::uint64_t baseAddress, const std::uint32_t size, const std::string& name)
     : m_BaseAddress{ baseAddress }, m_Size{ size }, m_Name{ name } { }
 
-CModuleMemento::CModuleMemento(CModuleMemento&& mv) {
+CModuleMemento::CModuleMemento(CModuleMemento&& mv) noexcept {
     *this = std::move(mv);
 }
 
-CModuleMemento& CModuleMemento::operator=(CModuleMemento&& mv) {
+CModuleMemento& CModuleMemento::operator=(CModuleMemento&& mv) noexcept {
     this->m_BaseAddress = mv.m_BaseAddress;
     this->m_Size = mv.m_Size;
     this->m_Name = std::move(mv.m_Name);
@@ -31,7 +31,6 @@ CModuleMemento& CModuleMemento::operator=(CModuleMemento&& mv) {
 }
 
 int operator<=>(const CModuleMemento& a1, const CModuleMemento& a2) {
-    //return a1.m_Name - a2.m_Name;
     return a1.m_BaseAddress - a2.m_BaseAddress;
 }
 
