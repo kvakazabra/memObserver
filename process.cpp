@@ -96,16 +96,14 @@ const CProcessMemento& IProcessIO::memento() const {
     return m_Memento;
 }
 
-bool IProcessIO::readPages(std::uint64_t startAddress, std::uint32_t size, std::uint8_t* buffer, std::uint8_t* invalidMask) {
+bool IProcessIO::readPages(std::uint64_t startAddress, std::uint32_t size, std::uint8_t* buffer, CBytesProtectionMask* mask) {
     std::uint32_t remainingSize{ size }, offset{ 0 };
     int p{ }; // protect against deadloop
     while(remainingSize && ++p < 100) {
         std::uint64_t currentAddress = startAddress + offset;
         MBIEx mbi{ query(currentAddress) };
         if(!mbi.BaseAddress && !mbi.AllocationBase) {
-            if(invalidMask) {
-                memset(invalidMask, 1, size);
-            }
+            if(mask) mask->setAllProtection(PAGE_NOACCESS);
             return false;
         }
 
@@ -114,10 +112,12 @@ bool IProcessIO::readPages(std::uint64_t startAddress, std::uint32_t size, std::
         if(toReadSize > remainingSize)
             toReadSize = remainingSize;
 
-        if(bool guarded = mbi.Protect & PAGE_GUARD; mbi.Protect & PAGE_NOACCESS || guarded) {
-            for(std::size_t i = offset; i < toReadSize && invalidMask; ++i) {
-                invalidMask[i] = guarded ? 2 : 1; // mark invalid bytes as "??" (like in windbg)
-            }
+        for(std::size_t i = offset; i < offset + toReadSize && mask; ++i) {
+            mask->setProtection(i, mbi.Protect);
+        }
+
+        bool canRead = !(mbi.Protect & PAGE_GUARD && mbi.Protect & PAGE_NOACCESS);
+        if(!canRead) {
             remainingSize -= toReadSize;
             offset += toReadSize;
             continue;

@@ -74,7 +74,7 @@ private:
  * address dumper -> line edit with address, auto refresh, text edit with vertical scroll
  *
  * TODO:
- * sections info for each module
+ * [+] sections info for each module
  * [+] move each class to individual files
  * [+] expand page protection info
  * add buttons to change page protection
@@ -83,6 +83,7 @@ private:
  * [/] move process selector and module list to separate windows (will add when i finish working on everything else)
  * [+] sort of processes and modules by names
  * [+] add composition of moduleList to CProcess
+ * byte character table to the right
  *
  * take into consideration AllocationBase and AllocationSize in MBI
  * real-time update of memory via multithreading

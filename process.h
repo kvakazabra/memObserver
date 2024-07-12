@@ -61,7 +61,7 @@ public:
     virtual std::tuple<bool, std::uint32_t> protect(std::uint64_t address, std::uint32_t size, std::uint32_t flags) const = 0;
 
     // invalidMask: 0 - regular byte, 1 - invalid (page protection or something else), 2 - guarded byte
-    bool readPages(std::uint64_t startAddress, std::uint32_t size, std::uint8_t* buffer, std::uint8_t* invalidMask = std::nullptr_t());
+    bool readPages(std::uint64_t startAddress, std::uint32_t size, std::uint8_t* buffer, CBytesProtectionMask* mask = std::nullptr_t());
 
     template<typename R>
     inline R read(std::uint64_t address) const {

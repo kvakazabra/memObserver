@@ -216,24 +216,18 @@ void CMainWindow::updateMemoryDataEdit() {
     if(!m_SelectedProcess)
         return;
 
-    std::uint8_t* buffer = new std::uint8_t[c_MemoryBufferSize]{ }, *invalidMask = new std::uint8_t[c_MemoryBufferSize]{ };
+    std::uint8_t* buffer = new std::uint8_t[c_MemoryBufferSize]{ };
+    CBytesProtectionMaskFormattablePlain protectionMask(c_MemoryBufferSize);
+
     std::uint64_t currentAddress = m_MemoryStartAddress + m_MemoryOffset;
 
-    m_SelectedProcess->readPages(currentAddress, c_MemoryBufferSize, buffer, invalidMask);
+    m_SelectedProcess->readPages(currentAddress, c_MemoryBufferSize, buffer, &protectionMask);
 
     for(std::size_t i = 0; i < c_MemoryRows; ++i) {
         QString bytesRow{ };
         for(std::size_t j = 0; j < c_MemoryBytesInRow; ++j) {
-            static char invalidByte[4]{"?? "}, guardedByte[4]{"xx "};
-            switch(invalidMask[i * c_MemoryBytesInRow + j]) {
-            case 1: bytesRow += invalidByte; continue;
-            case 2: bytesRow += guardedByte; continue;
-            default: break;
-            }
-
-            char b[4]{ };
-            sprintf_s(b, "%02x ", buffer[i * c_MemoryBytesInRow + j]);
-            bytesRow += b;
+            std::size_t currentByteIndex = i * c_MemoryBytesInRow + j;
+            bytesRow += (protectionMask.format(currentByteIndex, buffer[currentByteIndex]) + std::string(" ")).c_str();
         }
 
         char locationBuffer[32]{ };
@@ -253,22 +247,27 @@ void CMainWindow::updateMemoryDataEdit() {
         };
 
         formatLocation();
-        ui->memoryDataEdit->appendPlainText(QString(locationBuffer) + bytesRow);
+        ui->memoryDataEdit->append(QString(locationBuffer) + bytesRow);
+
     }
 
-    ui->memoryDataEdit->appendPlainText(QString("--------------------"));
+    ui->memoryDataEdit->append(QString("--------------------"));
 
     MBIEx mbi{ m_SelectedProcess->query(currentAddress) };
-    ui->memoryDataEdit->appendPlainText(QString("Page Base and Size: ") +
+    ui->memoryDataEdit->append(QString("Page Base and Size: ") +
                                         QString::number(reinterpret_cast<std::uint64_t>(mbi.BaseAddress), 16) +
                                         QString(" - ") +
                                         QString::number(mbi.RegionSize, 16));
-    ui->memoryDataEdit->appendPlainText(QString("Page Protection: ") +
+    ui->memoryDataEdit->append(QString("Page Protection: ") +
                                         QString(mbi.format().c_str()));
-    // ui->memoryDataEdit->appendPlainText(QString("Allocation Base and Size: ") +
-    //                                     QString::number(reinterpret_cast<std::uint64_t>(mbi.AllocationBase), 16) +
-    //                                     QString(" - ") +
-    //                                     QString::number(mbi.RegionSize, 16));
+    ui->memoryDataEdit->append(QString("Allocation Base and Size: ") +
+                                        QString::number(reinterpret_cast<std::uint64_t>(mbi.AllocationBase), 16) +
+                                        QString(" - ") +
+                                        QString::number(mbi.RegionSize, 16));
+
+    // if(GetAsyncKeyState(VK_RSHIFT) & 1) { // used for testing
+    //     printf("BEGIN:\n%ws\n", ui->memoryDataEdit->toHtml().constData());
+    // }
 }
 
 void CMainWindow::on_memoryVScrollBar_valueChanged(int value) {
