@@ -71,7 +71,7 @@ void CMainWindow::updateCurrentProcessLabel(const CProcessMemento& process) {
 
 void CMainWindow::on_processComboBox_activated(int index) {
     if(index >= m_ProcessList->data().size())
-        throw std::runtime_error("Out of bounds: m_ProcessList");
+        throw std::out_of_range("Out of bounds: m_ProcessList");
 
     onProcessDetach();
     auto selectedProcess = std::make_shared<CProcessWinIO>(m_ProcessList->data()[index]);
@@ -124,14 +124,14 @@ void CMainWindow::selectSection(int idx) {
 
 const CSection& CMainWindow::getSelectedSection() {
     if(m_SelectedSection == -1)
-        throw std::runtime_error("Check m_SelectedSection for -1 before calling getSelectedSection");
+        throw std::out_of_range("Check m_SelectedSection for -1 before calling getSelectedSection");
 
     if(m_SelectedProcess->moduleList().expired())
         throw std::runtime_error("Expired std::weak_ptr<CModuleList>, this should not happen");
 
     const auto& selectedModule = m_SelectedProcess->moduleList().lock()->data()[m_SelectedModule];
     if(m_SelectedSection >= selectedModule.sections().size())
-        throw std::runtime_error("Error: m_SelectedSection >= sections.size()");
+        throw std::out_of_range("Error: m_SelectedSection >= sections.size()");
 
     return selectedModule.sections()[m_SelectedSection];
 }
@@ -190,7 +190,7 @@ void CMainWindow::updateModuleInfoLines() {
 
     const auto modulesData = m_SelectedProcess->moduleList().lock()->data();
     if(m_SelectedModule >= modulesData.size())
-        throw std::runtime_error("Error: m_SelectedModule >= modulesData.size()");
+        throw std::out_of_range("Error: m_SelectedModule >= modulesData.size()");
 
     const auto& selectedModule = modulesData[m_SelectedModule];
     const auto [baseAddress, size] = selectedModule.memento().info();
