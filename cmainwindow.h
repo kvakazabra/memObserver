@@ -37,6 +37,7 @@ private slots:
 
     void onModuleInfoFormatChanged();
     void onMemoryAddressFormatChanged();
+    void on_actionOpen_Program_Data_Folder_triggered();
 
 private:
     Ui::CMainWindow *ui;

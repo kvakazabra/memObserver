@@ -854,6 +854,8 @@ li.checked::marker { content: &quot;\2612&quot;; }
     </property>
     <addaction name="actionProcess_Selector"/>
     <addaction name="actionModule_List"/>
+    <addaction name="separator"/>
+    <addaction name="actionOpen_Program_Data_Folder"/>
    </widget>
    <addaction name="menuView"/>
   </widget>
@@ -866,6 +868,11 @@ li.checked::marker { content: &quot;\2612&quot;; }
   <action name="actionModule_List">
    <property name="text">
     <string>Module List</string>
+   </property>
+  </action>
+  <action name="actionOpen_Program_Data_Folder">
+   <property name="text">
+    <string>Open Program Data Folder</string>
    </property>
   </action>
  </widget>

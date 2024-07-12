@@ -357,3 +357,11 @@ void CMainWindow::on_dumpSectionButton_clicked() {
     outFile.write(reinterpret_cast<const char*>(dumpBuffer.data()), dumpBuffer.size());
     updateSectionDumpLastLabel("Saved to " + QString(dumpPath.c_str()));
 }
+
+
+void CMainWindow::on_actionOpen_Program_Data_Folder_triggered() {
+    char cmd[MAX_PATH + 20]{ };
+    sprintf_s(cmd, "explorer %s", Utilities::programDataDirectory().c_str());
+    system(cmd);
+}
+
