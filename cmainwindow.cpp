@@ -301,6 +301,9 @@ void CMainWindow::onMemoryAddressFormatChanged() {
 }
 
 void CMainWindow::on_memoryResetOffsetButton_clicked() {
+    if(!m_MemoryStartAddress)
+        return;
+
     m_MemoryOffset = { };
     updateMemoryDataEdit();
 }
