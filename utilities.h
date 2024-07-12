@@ -13,6 +13,7 @@ public:
 class Utilities {
 public:
     static bool isHandleValid(HANDLE h);
+    static bool isValidASCIIChar(char c);
 };
 
 class MBIEx final : public MEMORY_BASIC_INFORMATION, public IFormattable {

@@ -216,18 +216,21 @@ void CMainWindow::updateMemoryDataEdit() {
     if(!m_SelectedProcess)
         return;
 
-    std::uint8_t* buffer = new std::uint8_t[c_MemoryBufferSize]{ };
-    CBytesProtectionMaskFormattablePlain protectionMask(c_MemoryBufferSize);
-
     std::uint64_t currentAddress = m_MemoryStartAddress + m_MemoryOffset;
 
+    std::uint8_t* buffer = new std::uint8_t[c_MemoryBufferSize]{ };
+    CBytesProtectionMaskFormattablePlain protectionMask(c_MemoryBufferSize);
     m_SelectedProcess->readPages(currentAddress, c_MemoryBufferSize, buffer, &protectionMask);
 
     for(std::size_t i = 0; i < c_MemoryRows; ++i) {
-        QString bytesRow{ };
+        QString bytesRow{ }, charsRow{ };
         for(std::size_t j = 0; j < c_MemoryBytesInRow; ++j) {
             std::size_t currentByteIndex = i * c_MemoryBytesInRow + j;
             bytesRow += (protectionMask.format(currentByteIndex, buffer[currentByteIndex]) + std::string(" ")).c_str();
+            charsRow +=
+                Utilities::isValidASCIIChar(static_cast<char>(buffer[currentByteIndex])) ?
+                            static_cast<char>(buffer[currentByteIndex]) :
+                            '.';
         }
 
         char locationBuffer[32]{ };
@@ -247,7 +250,7 @@ void CMainWindow::updateMemoryDataEdit() {
         };
 
         formatLocation();
-        ui->memoryDataEdit->append(QString(locationBuffer) + bytesRow);
+        ui->memoryDataEdit->append(QString(locationBuffer) + bytesRow + charsRow);
 
     }
 

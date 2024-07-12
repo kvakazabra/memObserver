@@ -4,6 +4,9 @@ bool Utilities::isHandleValid(HANDLE h) {
     return h != 0 && h != INVALID_HANDLE_VALUE;
 }
 
+bool Utilities::isValidASCIIChar(char c) {
+    return c > 0x20 && c < 0x7f;
+}
 
 MBIEx::MBIEx(const MEMORY_BASIC_INFORMATION& a1)
     : MEMORY_BASIC_INFORMATION{ a1 } { }

@@ -83,7 +83,7 @@ private:
  * [/] move process selector and module list to separate windows (will add when i finish working on everything else)
  * [+] sort of processes and modules by names
  * [+] add composition of moduleList to CProcess
- * byte character table to the right
+ * [+] byte character table to the right
  *
  * take into consideration AllocationBase and AllocationSize in MBI
  * real-time update of memory via multithreading
