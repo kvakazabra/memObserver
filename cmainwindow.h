@@ -78,26 +78,13 @@ private:
  * address dumper -> line edit with address, auto refresh, text edit with vertical scroll
  *
  * TODO:
- * [+] sections info for each module
- * [+] move each class to individual files
- * [+] expand page protection info
  * add buttons to change page protection
- * [+] add mask for guarded regions
  * add different types in memory
  * [/] move process selector and module list to separate windows (will add when i finish working on everything else)
- * [+] sort of processes and modules by names
- * [+] add composition of moduleList to CProcess
- * [+] byte character table to the right
- * change new, std::unique_ptr[] to vector
- * change std::runtime error to out of range
+ * sort of processes and modules by names
  *
  * take into consideration AllocationBase and AllocationSize in MBI
  * real-time update of memory via multithreading
- *
- * try coloring text (read only memory = green for example as in CE)
- *
- * [+] CProcessIO -> make an interface for read/write
- * [+] rework CProcess -> remove winapi calls or remove dependency on it (don't return false if OpenProcess failed)
  *
  * maybe:
  * async loading of all modules (idk why i thought about that, even on a potato pc itd still be fast enough), p.s. but practicing std::async would be nice

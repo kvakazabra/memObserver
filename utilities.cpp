@@ -81,21 +81,21 @@ std::string MBIEx::format() const {
 }
 
 CBytesProtectionMask::CBytesProtectionMask(std::size_t size)
-    : m_Size{ size }, m_Mask{ std::make_unique<CBytesProtectionMask::TByteType[]>(m_Size) } { }
+    : m_Mask{ std::vector<CBytesProtectionMask::TByteType>(size, CBytesProtectionMask::TByteType::None) } { }
 
 std::size_t CBytesProtectionMask::size() const {
-    return m_Size;
+    return m_Mask.size();
 }
 
 CBytesProtectionMask::TByteType& CBytesProtectionMask::operator[](std::size_t index) {
-    if(index >= m_Size)
+    if(index >= m_Mask.size())
         throw std::out_of_range("CBytesProtectionMask operator[] out of range");
 
     return m_Mask[index];
 }
 
 const CBytesProtectionMask::TByteType& CBytesProtectionMask::operator[](std::size_t index) const {
-    if(index >= m_Size)
+    if(index >= m_Mask.size())
         throw std::out_of_range("CBytesProtectionMask const operator[] out of range");
 
     return m_Mask[index];
@@ -121,7 +121,7 @@ void CBytesProtectionMask::setProtection(std::size_t index, std::uint32_t protec
 
 void CBytesProtectionMask::setAllProtection(std::uint32_t protection) {
     const auto type = typeByProtection(protection);
-    for(std::size_t i = 0; i < m_Size; ++i) {
+    for(std::size_t i = 0; i < m_Mask.size(); ++i) {
         operator[](i) = type;
     }
 }

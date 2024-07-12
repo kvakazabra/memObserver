@@ -64,18 +64,15 @@ const std::vector<CSection>& CModule::sections() const {
 void CModule::parseSections() {
     auto [baseAddress, size] = memento().info();
 
-    auto buffer{ std::make_unique_for_overwrite<std::uint8_t[]>(0x1000) };
-    if(!buffer)
+    std::vector<std::uint8_t> buffer(0x1000, 0);
+    if(!m_ThisProcess->readToBuffer(baseAddress, 0x1000, buffer.data()))
         return;
 
-    if(!m_ThisProcess->readToBuffer(baseAddress, 0x1000, buffer.get()))
-        return;
-
-    PIMAGE_DOS_HEADER dosHeader{ reinterpret_cast<PIMAGE_DOS_HEADER>(buffer.get()) };
+    PIMAGE_DOS_HEADER dosHeader{ reinterpret_cast<PIMAGE_DOS_HEADER>(buffer.data()) };
     if(dosHeader->e_magic != 0x5a4d) // MZ signature
         return;
 
-    PIMAGE_NT_HEADERS64 ntHeaders{ reinterpret_cast<PIMAGE_NT_HEADERS64>(buffer.get() + dosHeader->e_lfanew) };
+    PIMAGE_NT_HEADERS64 ntHeaders{ reinterpret_cast<PIMAGE_NT_HEADERS64>(buffer.data() + dosHeader->e_lfanew) };
     if(ntHeaders->Signature != 0x4550) // PE signature
         return;
 
