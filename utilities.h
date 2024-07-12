@@ -2,8 +2,10 @@
 #include <string>
 #include <QString>
 #include <Windows.h>
-#include <array>
 #include <stdexcept>
+#include <array>
+#include <fstream>
+#include <filesystem>
 
 class IFormattable {
 public:
@@ -14,6 +16,9 @@ class Utilities {
 public:
     static bool isHandleValid(HANDLE h);
     static bool isValidASCIIChar(char c);
+
+    static std::string generatePathForDump(const std::string& processName, const std::string& moduleName, const std::string& sectionName = "");
+    static const std::string& programDataDirectory();
 };
 
 class MBIEx final : public MEMORY_BASIC_INFORMATION, public IFormattable {

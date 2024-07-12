@@ -1,6 +1,7 @@
 #include "cmainwindow.h"
 #include "./ui_cmainwindow.h"
 #include "process_win32.h"
+
 #include <QPixmap>
 
 void showConsole() {
@@ -102,6 +103,8 @@ void CMainWindow::onProcessDetach() {
     ui->sectionsList->clear();
     selectSection(-1);
 
+    updateSectionDumpLastLabel();
+
     ui->modulesList->clear();
     selectModule(-1);
 
@@ -166,6 +169,10 @@ void CMainWindow::updateSectionInfoLines() {
     const auto [baseAddress, size] = getSelectedSection().info();
     ui->sectionInfoBaseAddressLine->setText(QString::number(baseAddress, 16));
     ui->sectionInfoSizeLine->setText(QString::number(size, 16));
+}
+
+void CMainWindow::updateSectionDumpLastLabel(const QString& message) {
+    ui->dumpSectionLastMessageLabel->setText(message);
 }
 
 void CMainWindow::updateModuleInfoLines() {
@@ -311,14 +318,42 @@ void CMainWindow::on_memoryResetOffsetButton_clicked() {
     updateMemoryDataEdit();
 }
 
-
 void CMainWindow::on_sectionsListGoToButton_clicked() {
     goToSelectedSection();
 }
-
 
 void CMainWindow::on_sectionsList_itemDoubleClicked(QListWidgetItem *item) {
     selectSection(item->listWidget()->row(item));
     goToSelectedSection();
 }
 
+void CMainWindow::on_dumpSectionButton_clicked() {
+    if(!m_SelectedProcess || m_SelectedSection == -1) {
+        updateSectionDumpLastLabel("You must select a process and a section you want to dump");
+        return;
+    }
+
+    const auto& selectedSection = getSelectedSection();
+    auto [baseAddress, size] = selectedSection.info();
+    if(!baseAddress || !size) {
+        updateSectionDumpLastLabel("Base address or size is null, can not perform an operation");
+        return;
+    }
+
+    const auto dumpBuffer = CDumper(m_SelectedProcess).dumpRegion(baseAddress, size);
+    const auto dumpPath =
+        Utilities::generatePathForDump(
+            m_SelectedProcess->memento().name(),
+            m_SelectedProcess->moduleList().lock()->data()[m_SelectedModule].memento().name(),
+            selectedSection.tag()
+        );
+
+    if(std::filesystem::exists(dumpPath)) {
+        updateSectionDumpLastLabel("File with the name of the dump already exist, delete it manually to proceed");
+        return;
+    }
+
+    std::ofstream outFile(dumpPath, std::ios::trunc | std::ios::binary);
+    outFile.write(reinterpret_cast<const char*>(dumpBuffer.data()), dumpBuffer.size());
+    updateSectionDumpLastLabel("Saved to " + QString(dumpPath.c_str()));
+}

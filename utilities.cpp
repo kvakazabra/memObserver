@@ -1,4 +1,5 @@
 #include "utilities.h"
+#include <shlobj_core.h>
 
 bool Utilities::isHandleValid(HANDLE h) {
     return h != 0 && h != INVALID_HANDLE_VALUE;
@@ -6,6 +7,35 @@ bool Utilities::isHandleValid(HANDLE h) {
 
 bool Utilities::isValidASCIIChar(char c) {
     return c > 0x20 && c < 0x7f;
+}
+
+std::string Utilities::generatePathForDump(const std::string& processName, const std::string& moduleName, const std::string& sectionName) {
+    if(sectionName.empty())
+        return programDataDirectory() + std::string("\\") +
+               processName + std::string("_") +
+               moduleName + std::string("_") +
+               std::to_string(time(NULL)) + std::string(".dmp");
+    else
+        return programDataDirectory() + std::string("\\") +
+               moduleName + std::string("_") +
+               sectionName + std::string("_") +
+               std::to_string(time(NULL)) + std::string(".dmp");
+}
+
+const std::string& Utilities::programDataDirectory() {
+    static std::string path{ };
+    if(!path.empty())
+        return path;
+
+    char buffer[MAX_PATH] = { };
+    if (!SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, buffer))) {
+        throw std::runtime_error("Critical: SHGetFolderPathW failed when getting program data directory");
+    }
+
+    path = std::string(buffer) + std::string("\\memObserver");
+    std::filesystem::create_directories(path);
+
+    return path;
 }
 
 MBIEx::MBIEx(const MEMORY_BASIC_INFORMATION& a1)

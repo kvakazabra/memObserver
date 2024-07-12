@@ -4,6 +4,7 @@
 #include <QListWidgetItem>
 #include "process.h"
 #include "module.h"
+#include "dumper.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -28,6 +29,7 @@ private slots:
     void on_sectionsList_currentRowChanged(int currentRow);
     void on_sectionsListGoToButton_clicked();
     void on_sectionsList_itemDoubleClicked(QListWidgetItem *item);
+    void on_dumpSectionButton_clicked();
 
     void on_memoryVScrollBar_valueChanged(int value);
     void on_memoryStartAddress_textChanged(const QString &arg1);
@@ -54,6 +56,7 @@ private:
     void updateCurrentProcessLabel(const CProcessMemento& process = CProcessMemento(0, "none"));
     void updateModuleInfoLines();
     void updateSectionInfoLines();
+    void updateSectionDumpLastLabel(const QString& message = "");
 
     void onProcessAttach();
     void onProcessDetach();
@@ -84,6 +87,8 @@ private:
  * [+] sort of processes and modules by names
  * [+] add composition of moduleList to CProcess
  * [+] byte character table to the right
+ * change new, std::unique_ptr[] to vector
+ * change std::runtime error to out of range
  *
  * take into consideration AllocationBase and AllocationSize in MBI
  * real-time update of memory via multithreading
