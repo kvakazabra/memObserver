@@ -1,5 +1,4 @@
 #pragma once
-
 #include <QMainWindow>
 #include <QListWidgetItem>
 #include "process.h"
@@ -34,15 +33,17 @@ private slots:
     void on_memoryVScrollBar_valueChanged(int value);
     void on_memoryStartAddress_textChanged(const QString &arg1);
     void on_memoryResetOffsetButton_clicked();
+    void on_memoryRealTimeUpdateCheckbox_stateChanged(int arg1);
+    void on_memoryUpdateIntervalSlider_valueChanged(int value);
 
     void onModuleInfoFormatChanged();
     void onMemoryAddressFormatChanged();
     void on_actionOpen_Program_Data_Folder_triggered();
-
 private:
     Ui::CMainWindow *ui;
     void connectButtons();
     void setupTextures();
+    void startMemoryUpdateThread();
 
     std::shared_ptr<CProcessList> m_ProcessList{ std::make_shared<CProcessList>() };
     std::shared_ptr<IProcessIO> m_SelectedProcess{ };
@@ -64,13 +65,18 @@ private:
 
     std::uint64_t m_MemoryStartAddress{ };
     std::int32_t m_MemoryOffset{ };
+    bool m_MemoryAutoUpdateEnabled{ true };
+    int m_MemoryAutoUpdateInterval{ 500 };
 
     static constexpr std::size_t c_MemoryBytesInRow{ 8 }; // must be divisible by 4
-    static constexpr std::size_t c_MemoryRows{ 12 };
+    static constexpr std::size_t c_MemoryRows{ 22 };
     static constexpr std::size_t c_MemoryBufferSize{ c_MemoryBytesInRow * c_MemoryRows };
-
+private slots:
     void updateMemoryDataEdit();
+signals:
+    void updateSignal();
 };
+
 
 /*
  * process list -> refresh, combobox, (maybe) button to attach
@@ -85,6 +91,8 @@ private:
  *
  * take into consideration AllocationBase and AllocationSize in MBI
  * real-time update of memory via multithreading
+ *
+ *reformat to new syntax instead of SIGNAL() SLOT() use & to function
  *
  * maybe:
  * async loading of all modules (idk why i thought about that, even on a potato pc itd still be fast enough), p.s. but practicing std::async would be nice

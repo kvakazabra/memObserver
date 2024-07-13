@@ -3,11 +3,32 @@
 #include "process_win32.h"
 
 #include <QPixmap>
+#include <thread>
 
 void showConsole() {
     AllocConsole();
     freopen("CONOUT$", "w", stdout);
     printf("Console allocated\n");
+}
+
+void CMainWindow::startMemoryUpdateThread() {
+    static auto autoUpdateMemoryViewer =
+        [](CMainWindow* window, bool* enabled, int* interval) -> void {
+        while(true) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(interval[0]));
+            if(!enabled[0])
+                continue;
+
+            emit window->updateSignal();
+            //QMetaObject::invokeMethod(window, "updateMemoryDataEdit", Qt::QueuedConnection);
+        }
+    };
+
+    static bool once{ };
+    if(!once) {
+        std::thread(autoUpdateMemoryViewer, this, &m_MemoryAutoUpdateEnabled, &m_MemoryAutoUpdateInterval).detach();
+        once = true;
+    }
 }
 
 void CMainWindow::setupTextures() {
@@ -22,6 +43,8 @@ void CMainWindow::connectButtons() {
 
     QObject::connect(ui->memoryOffsetAbsoluteButton, SIGNAL(clicked()), this, SLOT(onMemoryAddressFormatChanged()));
     QObject::connect(ui->memoryOffsetRelativeButton, SIGNAL(clicked()), this, SLOT(onMemoryAddressFormatChanged()));
+
+    QObject::connect(this, SIGNAL(updateSignal()), this, SLOT(updateMemoryDataEdit()));
 }
 
 CMainWindow::CMainWindow(QWidget *parent)
@@ -36,6 +59,7 @@ CMainWindow::CMainWindow(QWidget *parent)
     updateProcessesCombo();
     updateCurrentProcessLabel();
     updateMemoryDataEdit();
+    startMemoryUpdateThread();
 }
 
 CMainWindow::~CMainWindow() {
@@ -220,7 +244,7 @@ void CMainWindow::onModuleInfoFormatChanged() {
 
 void CMainWindow::updateMemoryDataEdit() {
     ui->memoryDataEdit->clear();
-    if(!m_SelectedProcess)
+    if(!m_SelectedProcess || !m_MemoryStartAddress)
         return;
 
     std::uint64_t currentAddress = m_MemoryStartAddress + m_MemoryOffset;
@@ -258,7 +282,6 @@ void CMainWindow::updateMemoryDataEdit() {
 
         formatLocation();
         ui->memoryDataEdit->append(QString(locationBuffer) + bytesRow + charsRow);
-
     }
 
     ui->memoryDataEdit->append(QString("--------------------"));
@@ -274,10 +297,6 @@ void CMainWindow::updateMemoryDataEdit() {
                                         QString::number(reinterpret_cast<std::uint64_t>(mbi.AllocationBase), 16) +
                                         QString(" - ") +
                                         QString::number(mbi.RegionSize, 16));
-
-    // if(GetAsyncKeyState(VK_RSHIFT) & 1) { // used for testing
-    //     printf("BEGIN:\n%ws\n", ui->memoryDataEdit->toHtml().constData());
-    // }
 }
 
 void CMainWindow::on_memoryVScrollBar_valueChanged(int value) {
@@ -358,10 +377,18 @@ void CMainWindow::on_dumpSectionButton_clicked() {
     updateSectionDumpLastLabel("Saved to " + QString(dumpPath.c_str()));
 }
 
-
 void CMainWindow::on_actionOpen_Program_Data_Folder_triggered() {
     char cmd[MAX_PATH + 20]{ };
     sprintf_s(cmd, "explorer %s", Utilities::programDataDirectory().c_str());
     system(cmd);
+}
+
+void CMainWindow::on_memoryRealTimeUpdateCheckbox_stateChanged(int arg1) {
+    bool isEnabled = arg1 == 2;
+    m_MemoryAutoUpdateEnabled = isEnabled;
+}
+
+void CMainWindow::on_memoryUpdateIntervalSlider_valueChanged(int value) {
+    m_MemoryAutoUpdateInterval = value;
 }
 

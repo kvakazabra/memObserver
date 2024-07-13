@@ -709,7 +709,7 @@
      <string>Type an address here...</string>
     </property>
    </widget>
-   <widget class="QCheckBox" name="checkBox">
+   <widget class="QCheckBox" name="memoryRealTimeUpdateCheckbox">
     <property name="geometry">
      <rect>
       <x>940</x>
@@ -729,6 +729,9 @@
     </property>
     <property name="checked">
      <bool>true</bool>
+    </property>
+    <property name="tristate">
+     <bool>false</bool>
     </property>
    </widget>
    <widget class="QPushButton" name="memoryResetOffsetButton">
@@ -750,7 +753,7 @@
       <x>750</x>
       <y>10</y>
       <width>91</width>
-      <height>81</height>
+      <height>61</height>
      </rect>
     </property>
     <property name="title">
@@ -760,7 +763,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>20</y>
+       <y>10</y>
        <width>75</width>
        <height>52</height>
       </rect>
@@ -833,6 +836,44 @@ li.checked::marker { content: &quot;\2612&quot;; }
        </property>
        <property name="orientation">
         <enum>Qt::Vertical</enum>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>940</x>
+      <y>10</y>
+      <width>191</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <layout class="QHBoxLayout" name="horizontalLayout_12">
+     <item>
+      <widget class="QLabel" name="label">
+       <property name="text">
+        <string>Update Interval</string>
+       </property>
+       <property name="scaledContents">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSlider" name="memoryUpdateIntervalSlider">
+       <property name="minimum">
+        <number>50</number>
+       </property>
+       <property name="maximum">
+        <number>1000</number>
+       </property>
+       <property name="value">
+        <number>500</number>
+       </property>
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
        </property>
       </widget>
      </item>
