@@ -54,8 +54,7 @@ public:
 private:
     TByteType typeByProtection(std::uint32_t protection);
 
-    std::size_t m_Size{ };
-    std::unique_ptr<TByteType[]> m_Mask{ };
+    std::vector<TByteType> m_Mask{ };
 };
 
 class CBytesProtectionMaskFormattablePlain : public CBytesProtectionMask {
