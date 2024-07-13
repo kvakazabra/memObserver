@@ -22,6 +22,7 @@ public:
 private slots:
     void on_processRefreshButton_clicked();
     void on_processComboBox_activated(int index);
+    void invalidProcessSlot();
 
     void on_modulesRefreshButton_clicked();
     void on_modulesList_currentRowChanged(int currentRow);
@@ -90,9 +91,7 @@ signals:
  * sort of processes and modules by names
  *
  * take into consideration AllocationBase and AllocationSize in MBI
- * real-time update of memory via multithreading
  *
- *reformat to new syntax instead of SIGNAL() SLOT() use & to function
  *
  * maybe:
  * async loading of all modules (idk why i thought about that, even on a potato pc itd still be fast enough), p.s. but practicing std::async would be nice

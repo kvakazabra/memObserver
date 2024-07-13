@@ -3,6 +3,7 @@
 #include "module.h"
 #include <Windows.h>
 #include <vector>
+#include <QObject>
 
 class CProcessMemento final : public IFormattable {
 public:
@@ -46,7 +47,8 @@ private:
 
 class CModuleList;
 
-class IProcessIO {
+class IProcessIO : public QObject {
+    Q_OBJECT
 public:
     IProcessIO(const CProcessMemento& process);
     IProcessIO(std::uint32_t id);
@@ -54,24 +56,24 @@ public:
 
     const CProcessMemento& memento() const;
 
-    virtual bool readToBuffer(std::uint64_t address, std::uint32_t size, void* buffer) const = 0;
-    virtual bool writeFromBuffer(std::uint64_t address, std::uint32_t size, void* buffer) const = 0;
-    virtual MBIEx query(std::uint64_t address) const = 0;
+    virtual bool readToBuffer(std::uint64_t address, std::uint32_t size, void* buffer) = 0;
+    virtual bool writeFromBuffer(std::uint64_t address, std::uint32_t size, void* buffer) = 0;
+    virtual MBIEx query(std::uint64_t address) = 0;
     // @return Returns true and oldProtect on success, false and 0 otherwise
-    virtual std::tuple<bool, std::uint32_t> protect(std::uint64_t address, std::uint32_t size, std::uint32_t flags) const = 0;
+    virtual std::tuple<bool, std::uint32_t> protect(std::uint64_t address, std::uint32_t size, std::uint32_t flags) = 0;
 
     // invalidMask: 0 - regular byte, 1 - invalid (page protection or something else), 2 - guarded byte
     bool readPages(std::uint64_t startAddress, std::uint32_t size, std::uint8_t* buffer, CBytesProtectionMask* mask = std::nullptr_t());
 
     template<typename R>
-    inline R read(std::uint64_t address) const {
+    inline R read(std::uint64_t address) {
         R buf{ };
         if(!readToBuffer(address, &buf, sizeof(R)))
             return { };
         return buf;
     }
     template<typename W>
-    inline bool write(std::uint64_t address, W value) const {
+    inline bool write(std::uint64_t address, W value) {
         return writeFromBuffer(address, &value, sizeof(W));
     }
 
@@ -80,6 +82,8 @@ private:
     CProcessMemento m_Memento;
 protected:
     std::shared_ptr<CModuleList> m_ModuleList;
+signals:
+    void invalidProcessSignal();
 };
 
 // must be instantiated in IProcessIO context

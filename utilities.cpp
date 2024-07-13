@@ -5,11 +5,22 @@ bool Utilities::isHandleValid(HANDLE h) {
     return h != 0 && h != INVALID_HANDLE_VALUE;
 }
 
-bool Utilities::isProcessActive(HANDLE h) {
+std::uint32_t Utilities::processExitCode(HANDLE h) {
     DWORD exitCode{ };
     if(!GetExitCodeProcess(h, &exitCode)) // not sure about this one
+        return UINT_MAX;
+    return exitCode;
+}
+
+bool Utilities::isProcessActive(HANDLE h) {
+    const auto exitCode = processExitCode(h);
+    if(exitCode == UINT_MAX) // error in processExitCode
         return false;
 
+    return isProcessActive(exitCode);
+}
+
+bool Utilities::isProcessActive(std::uint32_t exitCode) {
     return exitCode == STILL_ACTIVE;
 }
 

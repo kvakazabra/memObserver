@@ -17,8 +17,21 @@ CProcessWinIO::~CProcessWinIO() {
     printf("[~CProcessWinIO] Detaching: %s\n", memento().name().c_str());
 }
 
-bool CProcessWinIO::isAttached() const {
-    return Utilities::isHandleValid(handle()) && Utilities::isProcessActive(handle());
+bool CProcessWinIO::isAttached() {
+    if(!Utilities::isHandleValid(handle()))
+        return false;
+
+    const auto exitCode = Utilities::processExitCode(handle());
+    if(Utilities::isProcessActive(exitCode))
+        return true;
+
+    m_ExitCode = exitCode;
+    emit IProcessIO::invalidProcessSignal();
+    return false;
+}
+
+std::uint32_t CProcessWinIO::exitCode() const {
+    return m_ExitCode;
 }
 
 bool CProcessWinIO::tryAttach() {
@@ -44,21 +57,21 @@ HANDLE CProcessWinIO::handle() const {
     return m_Handle;
 }
 
-bool CProcessWinIO::readToBuffer(std::uint64_t address, std::uint32_t size, void* buffer) const {
+bool CProcessWinIO::readToBuffer(std::uint64_t address, std::uint32_t size, void* buffer) {
     if(!isAttached())
         return { };
 
     return ReadProcessMemory(handle(), reinterpret_cast<LPCVOID>(address), buffer, size, std::nullptr_t());
 }
 
-bool CProcessWinIO::writeFromBuffer(std::uint64_t address, std::uint32_t size, void* buffer) const {
+bool CProcessWinIO::writeFromBuffer(std::uint64_t address, std::uint32_t size, void* buffer) {
     if(!isAttached())
         return { };
 
     return WriteProcessMemory(handle(), reinterpret_cast<LPVOID>(address), buffer, size, std::nullptr_t());
 }
 
-MBIEx CProcessWinIO::query(std::uint64_t address) const {
+MBIEx CProcessWinIO::query(std::uint64_t address) {
     if(!isAttached())
         return { };
 
@@ -70,7 +83,7 @@ MBIEx CProcessWinIO::query(std::uint64_t address) const {
     return MBIEx{ mbi };
 }
 
-std::tuple<bool, std::uint32_t> CProcessWinIO::protect(std::uint64_t address, std::uint32_t size, std::uint32_t flags) const {
+std::tuple<bool, std::uint32_t> CProcessWinIO::protect(std::uint64_t address, std::uint32_t size, std::uint32_t flags) {
     if(!isAttached())
         return { };
 

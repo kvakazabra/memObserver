@@ -73,6 +73,22 @@ void CMainWindow::on_processRefreshButton_clicked() {
     updateProcessesCombo();
 }
 
+void CMainWindow::invalidProcessSlot() {
+    if(!m_SelectedProcess)
+        return;
+
+    CProcessWinIO* winProcess = dynamic_cast<CProcessWinIO*>(m_SelectedProcess.get());
+    if(winProcess) {
+        updateProcessLastLabel(
+            QString("The process exited with code ") +
+            QString::number(winProcess->exitCode(), 16)
+        );
+        return;
+    }
+
+    updateProcessLastLabel(QString("The process crashed"));
+}
+
 void CMainWindow::updateProcessesCombo() {
     const auto processes = m_ProcessList->data();
     ui->processComboBox->clear();
@@ -118,6 +134,8 @@ void CMainWindow::onProcessAttach() {
     for(auto& module : m_SelectedProcess->moduleList().lock()->data()) {
         ui->modulesList->addItem(QString(module.memento().format().c_str()));
     }
+
+    QObject::connect(m_SelectedProcess.get(), &IProcessIO::invalidProcessSignal, this, &CMainWindow::invalidProcessSlot);
 }
 
 void CMainWindow::onProcessDetach() {
