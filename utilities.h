@@ -15,6 +15,7 @@ public:
 class Utilities {
 public:
     static bool isHandleValid(HANDLE h);
+    static bool isProcessActive(HANDLE h);
     static bool isValidASCIIChar(char c);
 
     static std::string generatePathForDump(const std::string& processName, const std::string& moduleName, const std::string& sectionName = "");

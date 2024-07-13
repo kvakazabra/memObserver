@@ -5,6 +5,14 @@ bool Utilities::isHandleValid(HANDLE h) {
     return h != 0 && h != INVALID_HANDLE_VALUE;
 }
 
+bool Utilities::isProcessActive(HANDLE h) {
+    DWORD exitCode{ };
+    if(!GetExitCodeProcess(h, &exitCode)) // not sure about this one
+        return false;
+
+    return exitCode == STILL_ACTIVE;
+}
+
 bool Utilities::isValidASCIIChar(char c) {
     return c > 0x20 && c < 0x7f;
 }

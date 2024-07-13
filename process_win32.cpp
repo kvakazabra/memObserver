@@ -18,7 +18,7 @@ CProcessWinIO::~CProcessWinIO() {
 }
 
 bool CProcessWinIO::isAttached() const {
-    return Utilities::isHandleValid(handle());
+    return Utilities::isHandleValid(handle()) && Utilities::isProcessActive(handle());
 }
 
 bool CProcessWinIO::tryAttach() {
@@ -52,6 +52,9 @@ bool CProcessWinIO::readToBuffer(std::uint64_t address, std::uint32_t size, void
 }
 
 bool CProcessWinIO::writeFromBuffer(std::uint64_t address, std::uint32_t size, void* buffer) const {
+    if(!isAttached())
+        return { };
+
     return WriteProcessMemory(handle(), reinterpret_cast<LPVOID>(address), buffer, size, std::nullptr_t());
 }
 
