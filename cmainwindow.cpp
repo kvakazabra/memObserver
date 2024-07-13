@@ -38,13 +38,13 @@ void CMainWindow::setupTextures() {
 }
 
 void CMainWindow::connectButtons() {
-    QObject::connect(ui->moduleInfoDecimalButton, SIGNAL(clicked()), this, SLOT(onModuleInfoFormatChanged()));
-    QObject::connect(ui->moduleInfoHexadecimalButton, SIGNAL(clicked()), this, SLOT(onModuleInfoFormatChanged()));
+    QObject::connect(ui->moduleInfoDecimalButton, &QAbstractButton::clicked, this, &CMainWindow::onModuleInfoFormatChanged);
+    QObject::connect(ui->moduleInfoHexadecimalButton, &QAbstractButton::clicked, this, &CMainWindow::onModuleInfoFormatChanged);
 
-    QObject::connect(ui->memoryOffsetAbsoluteButton, SIGNAL(clicked()), this, SLOT(onMemoryAddressFormatChanged()));
-    QObject::connect(ui->memoryOffsetRelativeButton, SIGNAL(clicked()), this, SLOT(onMemoryAddressFormatChanged()));
+    QObject::connect(ui->memoryOffsetAbsoluteButton, &QAbstractButton::clicked, this, &CMainWindow::onMemoryAddressFormatChanged);
+    QObject::connect(ui->memoryOffsetRelativeButton, &QAbstractButton::clicked, this, &CMainWindow::onMemoryAddressFormatChanged);
 
-    QObject::connect(this, SIGNAL(updateSignal()), this, SLOT(updateMemoryDataEdit()));
+    QObject::connect(this, &CMainWindow::updateSignal, this, &CMainWindow::updateMemoryDataEdit);
 }
 
 CMainWindow::CMainWindow(QWidget *parent)
