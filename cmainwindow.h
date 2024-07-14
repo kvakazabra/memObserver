@@ -56,6 +56,8 @@ private:
     const CSection& getSelectedSection();
     void goToSelectedSection();
 
+    void updateStatusBar(const QString& message = "");
+
     void updateProcessesCombo();
     void updateProcessLastLabel(const QString& message);
     void updateCurrentProcessLabel(const CProcessMemento& process = CProcessMemento(0, "none"));

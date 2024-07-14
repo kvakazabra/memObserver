@@ -83,10 +83,12 @@ void CMainWindow::invalidProcessSlot() {
             QString("The process exited with code ") +
             QString::number(winProcess->exitCode(), 16)
         );
+        updateStatusBar(QString("Detached"));
         return;
     }
 
     updateProcessLastLabel(QString("The process crashed"));
+    updateStatusBar(QString("Crashed"));
 }
 
 void CMainWindow::updateProcessesCombo() {
@@ -125,7 +127,8 @@ void CMainWindow::on_processComboBox_activated(int index) {
 }
 
 void CMainWindow::onProcessAttach() {
-    updateProcessLastLabel(QString("Attached to ") + QString(m_SelectedProcess->memento().name().c_str()) + QString(" successfully"));
+    updateStatusBar(QString("Attached to ") + QString(m_SelectedProcess->memento().name().c_str()) + QString(" successfully"));
+    updateProcessLastLabel(QString("Attached successfully"));
     updateCurrentProcessLabel(m_SelectedProcess->memento());
 
     if(m_SelectedProcess->moduleList().expired())
@@ -139,6 +142,8 @@ void CMainWindow::onProcessAttach() {
 }
 
 void CMainWindow::onProcessDetach() {
+    updateStatusBar();
+
     m_MemoryStartAddress = { };
     m_MemoryOffset = { };
 
@@ -404,7 +409,8 @@ void CMainWindow::on_dumpSectionButton_clicked() {
 
     std::ofstream outFile(dumpPath, std::ios::trunc | std::ios::binary);
     outFile.write(reinterpret_cast<const char*>(dumpBuffer.data()), dumpBuffer.size());
-    updateSectionDumpLastLabel("Saved to " + QString(dumpPath.c_str()));
+    updateSectionDumpLastLabel("Dumped successfully");
+    updateStatusBar("Saved to " + QString(dumpPath.c_str()));
 }
 
 void CMainWindow::on_actionOpen_Program_Data_Folder_triggered() {
@@ -451,6 +457,10 @@ void CMainWindow::on_dumpModuleButton_clicked() {
 
     std::ofstream outFile(dumpPath, std::ios::trunc | std::ios::binary);
     outFile.write(reinterpret_cast<const char*>(dumpBuffer.data()), dumpBuffer.size());
-    updateModuleDumpLastLabel("Saved to " + QString(dumpPath.c_str()));
+    updateModuleDumpLastLabel("Dumped successfully");
+    updateStatusBar("Saved to " + QString(dumpPath.c_str()));
 }
 
+void CMainWindow::updateStatusBar(const QString& message) {
+    ui->statusbar->showMessage(message);
+}
