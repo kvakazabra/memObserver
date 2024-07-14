@@ -13,20 +13,19 @@ void showConsole() {
 
 void CMainWindow::startMemoryUpdateThread() {
     static auto autoUpdateMemoryViewer =
-        [](CMainWindow* window, bool* enabled, int* interval) -> void {
+        [](CMainWindow* window, CSettings* settings) -> void {
         while(true) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(interval[0]));
-            if(!enabled[0])
+            std::this_thread::sleep_for( std::chrono::milliseconds(settings->memoryViewAutoUpdateInterval()) );
+            if(!settings->memoryViewIsAutoUpdateEnabled())
                 continue;
 
             emit window->updateSignal();
-            //QMetaObject::invokeMethod(window, "updateMemoryDataEdit", Qt::QueuedConnection);
         }
     };
 
     static bool once{ };
     if(!once) {
-        std::thread(autoUpdateMemoryViewer, this, &m_MemoryAutoUpdateEnabled, &m_MemoryAutoUpdateInterval).detach();
+        std::thread(autoUpdateMemoryViewer, this, m_Settings).detach();
         once = true;
     }
 }
@@ -38,11 +37,8 @@ void CMainWindow::setupTextures() {
 }
 
 void CMainWindow::connectButtons() {
-    QObject::connect(ui->moduleInfoDecimalButton, &QAbstractButton::clicked, this, &CMainWindow::onModuleInfoFormatChanged);
-    QObject::connect(ui->moduleInfoHexadecimalButton, &QAbstractButton::clicked, this, &CMainWindow::onModuleInfoFormatChanged);
-
-    QObject::connect(ui->memoryOffsetAbsoluteButton, &QAbstractButton::clicked, this, &CMainWindow::onMemoryAddressFormatChanged);
-    QObject::connect(ui->memoryOffsetRelativeButton, &QAbstractButton::clicked, this, &CMainWindow::onMemoryAddressFormatChanged);
+    QObject::connect(m_Settings, &CSettings::moduleInfoFormatChanged, this, &CMainWindow::onModuleInfoFormatChanged);
+    QObject::connect(m_Settings, &CSettings::memoryViewFormatChanged, this, &CMainWindow::onMemoryAddressFormatChanged);
 
     QObject::connect(this, &CMainWindow::updateSignal, this, &CMainWindow::updateMemoryDataEdit);
 }
@@ -268,7 +264,7 @@ void CMainWindow::updateModuleInfoLines() {
     const auto& selectedModule = modulesData[m_SelectedModule];
     const auto [baseAddress, size] = selectedModule.memento().info();
 
-    const int base = ui->moduleInfoDecimalButton->isChecked() ? 10 : 16;
+    const int base = m_Settings->moduleInfoIsHexadecimalFormat() ? 16 : 10;
 
     ui->moduleInfoNameLine->setText(QString(selectedModule.memento().name().c_str()));
     ui->moduleInfoBaseAddressLine->setText(QString::number(baseAddress, base));
@@ -315,8 +311,7 @@ void CMainWindow::updateMemoryDataEdit() {
 
         char locationBuffer[32]{ };
         auto formatLocation = [&]() -> void {
-            bool isRelative = ui->memoryOffsetRelativeButton->isChecked();
-            if(isRelative) {
+            if(m_Settings->memoryViewIsOffsetRelative()) {
                 std::int32_t currentOffset = m_MemoryOffset + static_cast<std::int32_t>(i * c_MemoryBytesInRow);
                 bool isNegative{ currentOffset < 0 };
                 if(;isNegative) {
@@ -433,16 +428,6 @@ void CMainWindow::on_actionOpen_Program_Data_Folder_triggered() {
     system(cmd);
 }
 
-void CMainWindow::on_memoryRealTimeUpdateCheckbox_stateChanged(int arg1) {
-    bool isEnabled = arg1 == 2;
-    m_MemoryAutoUpdateEnabled = isEnabled;
-}
-
-void CMainWindow::on_memoryUpdateIntervalSlider_valueChanged(int value) {
-    m_MemoryAutoUpdateInterval = value;
-}
-
-
 void CMainWindow::on_dumpModuleButton_clicked() {
     if(!m_SelectedProcess || m_SelectedModule == -1) {
         updateModuleDumpLastLabel("You must select a process and a module you want to dump");
@@ -482,5 +467,9 @@ void CMainWindow::updateStatusBar(const QString& message) {
 void CMainWindow::on_modulesList_itemDoubleClicked(QListWidgetItem *item) {
     selectModule(item->listWidget()->row(item));
     goToSelectedModule();
+}
+
+void CMainWindow::on_actionSettings_triggered() {
+    m_Settings->show();
 }
 

@@ -4,6 +4,7 @@
 #include "process.h"
 #include "module.h"
 #include "dumper.h"
+#include "settings.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -36,14 +37,14 @@ private slots:
     void on_memoryVScrollBar_valueChanged(int value);
     void on_memoryStartAddress_textChanged(const QString &arg1);
     void on_memoryResetOffsetButton_clicked();
-    void on_memoryRealTimeUpdateCheckbox_stateChanged(int arg1);
-    void on_memoryUpdateIntervalSlider_valueChanged(int value);
 
     void onModuleInfoFormatChanged();
     void onMemoryAddressFormatChanged();
     void on_actionOpen_Program_Data_Folder_triggered();
 private:
     Ui::CMainWindow *ui;
+    CSettings* m_Settings{ new CSettings(this) };
+
     void connectButtons();
     void setupTextures();
     void startMemoryUpdateThread();
@@ -82,6 +83,7 @@ private:
     static constexpr std::size_t c_MemoryBufferSize{ c_MemoryBytesInRow * c_MemoryRows };
 private slots:
     void updateMemoryDataEdit();
+    void on_actionSettings_triggered();
 signals:
     void updateSignal();
 };

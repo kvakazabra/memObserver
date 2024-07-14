@@ -708,36 +708,11 @@
      <string>Type an address here...</string>
     </property>
    </widget>
-   <widget class="QCheckBox" name="memoryRealTimeUpdateCheckbox">
-    <property name="geometry">
-     <rect>
-      <x>940</x>
-      <y>30</y>
-      <width>141</width>
-      <height>22</height>
-     </rect>
-    </property>
-    <property name="sizePolicy">
-     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-      <horstretch>0</horstretch>
-      <verstretch>0</verstretch>
-     </sizepolicy>
-    </property>
-    <property name="text">
-     <string>Real-Time Update</string>
-    </property>
-    <property name="checked">
-     <bool>true</bool>
-    </property>
-    <property name="tristate">
-     <bool>false</bool>
-    </property>
-   </widget>
    <widget class="QPushButton" name="memoryResetOffsetButton">
     <property name="geometry">
      <rect>
-      <x>850</x>
-      <y>30</y>
+      <x>1020</x>
+      <y>60</y>
       <width>80</width>
       <height>24</height>
      </rect>
@@ -745,48 +720,6 @@
     <property name="text">
      <string>Return</string>
     </property>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_2">
-    <property name="geometry">
-     <rect>
-      <x>750</x>
-      <y>10</y>
-      <width>91</width>
-      <height>61</height>
-     </rect>
-    </property>
-    <property name="title">
-     <string>Offset Format</string>
-    </property>
-    <widget class="QWidget" name="layoutWidget">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>10</y>
-       <width>75</width>
-       <height>52</height>
-      </rect>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_5">
-      <item>
-       <widget class="QRadioButton" name="memoryOffsetAbsoluteButton">
-        <property name="text">
-         <string>Absolute</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QRadioButton" name="memoryOffsetRelativeButton">
-        <property name="text">
-         <string>Relative</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
    </widget>
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
@@ -840,79 +773,6 @@ li.checked::marker { content: &quot;\2612&quot;; }
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="layoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>940</x>
-      <y>10</y>
-      <width>191</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <layout class="QHBoxLayout" name="horizontalLayout_12">
-     <item>
-      <widget class="QLabel" name="label">
-       <property name="text">
-        <string>Update Interval</string>
-       </property>
-       <property name="scaledContents">
-        <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QSlider" name="memoryUpdateIntervalSlider">
-       <property name="minimum">
-        <number>50</number>
-       </property>
-       <property name="maximum">
-        <number>1000</number>
-       </property>
-       <property name="value">
-        <number>500</number>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QWidget" name="">
-    <property name="geometry">
-     <rect>
-      <x>40</x>
-      <y>220</y>
-      <width>199</width>
-      <height>44</height>
-     </rect>
-    </property>
-    <layout class="QVBoxLayout" name="verticalLayout_4">
-     <item>
-      <widget class="QRadioButton" name="moduleInfoHexadecimalButton">
-       <property name="text">
-        <string>Hexadecimal</string>
-       </property>
-       <property name="iconSize">
-        <size>
-         <width>16</width>
-         <height>16</height>
-        </size>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QRadioButton" name="moduleInfoDecimalButton">
-       <property name="text">
-        <string>Decimal</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -931,6 +791,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
     <addaction name="actionModule_List"/>
     <addaction name="separator"/>
     <addaction name="actionOpen_Program_Data_Folder"/>
+    <addaction name="actionSettings"/>
    </widget>
    <addaction name="menuView"/>
   </widget>
@@ -948,6 +809,11 @@ li.checked::marker { content: &quot;\2612&quot;; }
   <action name="actionOpen_Program_Data_Folder">
    <property name="text">
     <string>Open Program Data Folder</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Settings</string>
    </property>
   </action>
  </widget>
