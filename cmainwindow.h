@@ -26,6 +26,7 @@ private slots:
 
     void on_modulesRefreshButton_clicked();
     void on_modulesList_currentRowChanged(int currentRow);
+    void on_modulesList_itemDoubleClicked(QListWidgetItem *item);
     void on_sectionsList_currentRowChanged(int currentRow);
     void on_sectionsListGoToButton_clicked();
     void on_sectionsList_itemDoubleClicked(QListWidgetItem *item);
@@ -54,7 +55,9 @@ private:
     void selectSection(int idx = -1);
     const CModule& getSelectedModule();
     const CSection& getSelectedSection();
+    void goToSelectedModule();
     void goToSelectedSection();
+    void goToAddress(std::uint64_t address);
 
     void updateStatusBar(const QString& message = "");
 
@@ -85,20 +88,12 @@ signals:
 
 
 /*
- * process list -> refresh, combobox, (maybe) button to attach
- * modules list -> refresh, list widget, on right click on item context menu (copy address, copy dll name), on select maybe dump sections info
- * address dumper -> line edit with address, auto refresh, text edit with vertical scroll
  *
  * TODO:
  * add buttons to change page protection
  * add different types in memory
  * [/] move process selector and module list to separate windows (will add when i finish working on everything else)
  * sort of processes and modules by names
- *
- * take into consideration AllocationBase and AllocationSize in MBI
- *
- * dumper for images, custom section dumps
- *
  *
  * maybe:
  * async loading of all modules (idk why i thought about that, even on a potato pc itd still be fast enough), p.s. but practicing std::async would be nice

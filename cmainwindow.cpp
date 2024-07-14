@@ -191,16 +191,30 @@ const CSection& CMainWindow::getSelectedSection() {
     return selectedModule.sections()[m_SelectedSection];
 }
 
+void CMainWindow::goToAddress(std::uint64_t address) {
+    if(!m_SelectedProcess)
+        return;
+
+    ui->memoryStartAddress->setText(QString::number(address, 16));
+    m_MemoryStartAddress = address;
+    m_MemoryOffset = { };
+    updateMemoryDataEdit();
+}
+
+void CMainWindow::goToSelectedModule() {
+    if(m_SelectedModule == -1)
+        return;
+
+    const auto baseAddress = std::get<0>(getSelectedModule().memento().info());
+    goToAddress(baseAddress);
+}
+
 void CMainWindow::goToSelectedSection() {
     if(m_SelectedSection == -1)
         return;
 
     const auto baseAddress = std::get<0>(getSelectedSection().info());
-
-    ui->memoryStartAddress->setText(QString::number(baseAddress, 16));
-    m_MemoryStartAddress = baseAddress;
-    m_MemoryOffset = { };
-    updateMemoryDataEdit();
+    goToAddress(baseAddress);
 }
 
 void CMainWindow::on_modulesRefreshButton_clicked() {
@@ -464,3 +478,9 @@ void CMainWindow::on_dumpModuleButton_clicked() {
 void CMainWindow::updateStatusBar(const QString& message) {
     ui->statusbar->showMessage(message);
 }
+
+void CMainWindow::on_modulesList_itemDoubleClicked(QListWidgetItem *item) {
+    selectModule(item->listWidget()->row(item));
+    goToSelectedModule();
+}
+
