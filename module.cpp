@@ -3,15 +3,21 @@
 
 #include <TlHelp32.h>
 
-CSection::CSection(std::uint64_t baseAddress, std::uint32_t size, char* tag)
+CSection::CSection(std::uint64_t baseAddress, std::uint32_t size, char* tag, const IMAGE_SECTION_HEADER& header)
     : m_BaseAddress{ baseAddress }
-    , m_Size{ size } {
+    , m_Size{ size }
+    , m_Header{ header } {
     memcpy(m_Tag, tag, 8);
 }
 
 std::tuple<std::uint64_t, std::uint32_t> CSection::info() const {
     return std::make_tuple(m_BaseAddress, m_Size);
 }
+
+const IMAGE_SECTION_HEADER& CSection::rawInfo() const {
+    return m_Header;
+}
+
 const char* CSection::tag() const {
     return m_Tag;
 }
@@ -61,18 +67,24 @@ const std::vector<CSection>& CModule::sections() const {
     return m_Sections;
 }
 
+std::vector<std::uint8_t>& CModule::headers() {
+    return m_Headers;
+}
+
+const std::vector<std::uint8_t>& CModule::headers() const {
+    return m_Headers;
+}
+
 void CModule::parseSections() {
     auto [baseAddress, size] = memento().info();
-
-    std::vector<std::uint8_t> buffer(0x1000, 0);
-    if(!m_ThisProcess->readToBuffer(baseAddress, 0x1000, buffer.data()))
+    if(!m_ThisProcess->readToBuffer(baseAddress, 0x1000, m_Headers.data()))
         return;
 
-    PIMAGE_DOS_HEADER dosHeader{ reinterpret_cast<PIMAGE_DOS_HEADER>(buffer.data()) };
+    PIMAGE_DOS_HEADER dosHeader{ reinterpret_cast<PIMAGE_DOS_HEADER>(m_Headers.data()) };
     if(dosHeader->e_magic != 0x5a4d) // MZ signature
         return;
 
-    PIMAGE_NT_HEADERS64 ntHeaders{ reinterpret_cast<PIMAGE_NT_HEADERS64>(buffer.data() + dosHeader->e_lfanew) };
+    PIMAGE_NT_HEADERS64 ntHeaders{ reinterpret_cast<PIMAGE_NT_HEADERS64>(m_Headers.data() + dosHeader->e_lfanew) };
     if(ntHeaders->Signature != 0x4550) // PE signature
         return;
 
@@ -80,7 +92,7 @@ void CModule::parseSections() {
     for(int i = 0; i < ntHeaders->FileHeader.NumberOfSections; ++i) {
         IMAGE_SECTION_HEADER section = sections[i];
         std::uint64_t sectionBaseAddress = baseAddress + section.VirtualAddress;
-        m_Sections.emplace_back(sectionBaseAddress, section.SizeOfRawData, reinterpret_cast<char*>(section.Name));
+        m_Sections.emplace_back(sectionBaseAddress, section.Misc.VirtualSize, reinterpret_cast<char*>(section.Name), section);
     }
 }
 

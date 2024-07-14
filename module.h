@@ -6,11 +6,14 @@
 
 class CSection {
 public:
-    CSection(std::uint64_t baseAddress, std::uint32_t size, char* tag);
+    CSection(std::uint64_t baseAddress, std::uint32_t size, char* tag, const IMAGE_SECTION_HEADER& sectionHeader);
 
+    const IMAGE_SECTION_HEADER& rawInfo() const;
     std::tuple<std::uint64_t, std::uint32_t> info() const;
     const char* tag() const;
 private:
+    IMAGE_SECTION_HEADER m_Header{ };
+
     std::uint64_t m_BaseAddress{ };
     std::uint32_t m_Size{ };
     char m_Tag[9]{ };
@@ -49,10 +52,13 @@ public:
 public:
     const CModuleMemento& memento() const;
     const std::vector<CSection>& sections() const;
+    std::vector<std::uint8_t>& headers();
+    const std::vector<std::uint8_t>& headers() const;
 private:
     void parseSections();
 
     CModuleMemento m_Memento;
     IProcessIO* m_ThisProcess{ };
+    std::vector<std::uint8_t> m_Headers{ std::vector<std::uint8_t>(0x1000, 0) };
     std::vector<CSection> m_Sections{ };
 };
