@@ -377,7 +377,7 @@ void CMainWindow::on_dumpSectionButton_clicked() {
         return;
     }
 
-    const auto dumpBuffer = CDumper(m_SelectedProcess).dumpRegion(baseAddress, size);
+    const auto dumpBuffer = CSectionDumper(m_SelectedProcess, baseAddress, size).dump();
     const auto dumpPath =
         Utilities::generatePathForDump(
             m_SelectedProcess->memento().name(),
