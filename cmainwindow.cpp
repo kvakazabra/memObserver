@@ -146,6 +146,7 @@ void CMainWindow::onProcessDetach() {
     selectSection(-1);
 
     updateSectionDumpLastLabel();
+    updateModuleDumpLastLabel();
 
     ui->modulesList->clear();
     selectModule(-1);
@@ -222,6 +223,10 @@ void CMainWindow::updateSectionInfoLines() {
 
 void CMainWindow::updateSectionDumpLastLabel(const QString& message) {
     ui->dumpSectionLastMessageLabel->setText(message);
+}
+
+void CMainWindow::updateModuleDumpLastLabel(const QString& message) {
+    ui->dumpModuleLastMessageLabel->setText(message);
 }
 
 void CMainWindow::updateModuleInfoLines() {
@@ -415,5 +420,37 @@ void CMainWindow::on_memoryRealTimeUpdateCheckbox_stateChanged(int arg1) {
 
 void CMainWindow::on_memoryUpdateIntervalSlider_valueChanged(int value) {
     m_MemoryAutoUpdateInterval = value;
+}
+
+
+void CMainWindow::on_dumpModuleButton_clicked() {
+    if(!m_SelectedProcess || m_SelectedModule == -1) {
+        updateModuleDumpLastLabel("You must select a process and a module you want to dump");
+        return;
+    }
+
+    const auto& module = getSelectedModule();
+    auto [baseAddress, size] = module.memento().info();
+    if(!baseAddress || !size) {
+        updateModuleDumpLastLabel("Base address or size is null, can not perform an operation");
+        return;
+    }
+
+    const auto dumpBuffer = CModuleDumper(m_SelectedProcess, baseAddress).dump();
+    const auto dumpPath =
+        Utilities::generatePathForDump(
+            m_SelectedProcess->memento().name(),
+            module.memento().name(),
+            ""
+        );
+
+    if(std::filesystem::exists(dumpPath)) {
+        updateModuleDumpLastLabel("File with the name of the dump already exist, delete it manually to proceed");
+        return;
+    }
+
+    std::ofstream outFile(dumpPath, std::ios::trunc | std::ios::binary);
+    outFile.write(reinterpret_cast<const char*>(dumpBuffer.data()), dumpBuffer.size());
+    updateModuleDumpLastLabel("Saved to " + QString(dumpPath.c_str()));
 }
 

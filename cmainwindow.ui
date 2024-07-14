@@ -303,43 +303,16 @@
           <property name="title">
            <string>Module Info</string>
           </property>
-          <widget class="QWidget" name="layoutWidget">
+          <widget class="QWidget" name="">
            <property name="geometry">
             <rect>
-             <x>10</x>
+             <x>11</x>
              <y>20</y>
              <width>201</width>
-             <height>191</height>
+             <height>201</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_2">
-            <item>
-             <layout class="QVBoxLayout" name="verticalLayout_4">
-              <item>
-               <widget class="QRadioButton" name="moduleInfoHexadecimalButton">
-                <property name="text">
-                 <string>Hexadecimal</string>
-                </property>
-                <property name="iconSize">
-                 <size>
-                  <width>16</width>
-                  <height>16</height>
-                 </size>
-                </property>
-                <property name="checked">
-                 <bool>true</bool>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <widget class="QRadioButton" name="moduleInfoDecimalButton">
-                <property name="text">
-                 <string>Decimal</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
-            </item>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_2">
               <property name="sizeConstraint">
@@ -425,17 +398,43 @@
              </layout>
             </item>
             <item>
+             <widget class="QPushButton" name="dumpModuleButton">
+              <property name="text">
+               <string>Dump and Save</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="dumpModuleLastMessageLabel">
+              <property name="minimumSize">
+               <size>
+                <width>0</width>
+                <height>60</height>
+               </size>
+              </property>
+              <property name="inputMethodHints">
+               <set>Qt::ImhMultiLine</set>
+              </property>
+              <property name="text">
+               <string/>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+              </property>
+              <property name="wordWrap">
+               <bool>true</bool>
+              </property>
+             </widget>
+            </item>
+            <item>
              <spacer name="verticalSpacer">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
               </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Maximum</enum>
-              </property>
               <property name="sizeHint" stdset="0">
                <size>
                 <width>20</width>
-                <height>50</height>
+                <height>40</height>
                </size>
               </property>
              </spacer>
@@ -841,7 +840,7 @@ li.checked::marker { content: &quot;\2612&quot;; }
      </item>
     </layout>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>940</x>
@@ -874,6 +873,41 @@ li.checked::marker { content: &quot;\2612&quot;; }
        </property>
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QWidget" name="">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>220</y>
+      <width>199</width>
+      <height>44</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout_4">
+     <item>
+      <widget class="QRadioButton" name="moduleInfoHexadecimalButton">
+       <property name="text">
+        <string>Hexadecimal</string>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>16</width>
+         <height>16</height>
+        </size>
+       </property>
+       <property name="checked">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QRadioButton" name="moduleInfoDecimalButton">
+       <property name="text">
+        <string>Decimal</string>
        </property>
       </widget>
      </item>

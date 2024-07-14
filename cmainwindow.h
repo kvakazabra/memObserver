@@ -30,6 +30,7 @@ private slots:
     void on_sectionsListGoToButton_clicked();
     void on_sectionsList_itemDoubleClicked(QListWidgetItem *item);
     void on_dumpSectionButton_clicked();
+    void on_dumpModuleButton_clicked();
 
     void on_memoryVScrollBar_valueChanged(int value);
     void on_memoryStartAddress_textChanged(const QString &arg1);
@@ -61,6 +62,7 @@ private:
     void updateModuleInfoLines();
     void updateSectionInfoLines();
     void updateSectionDumpLastLabel(const QString& message = "");
+    void updateModuleDumpLastLabel(const QString& message = "");
 
     void onProcessAttach();
     void onProcessDetach();
@@ -92,6 +94,8 @@ signals:
  * sort of processes and modules by names
  *
  * take into consideration AllocationBase and AllocationSize in MBI
+ *
+ * dumper for images, custom section dumps
  *
  *
  * maybe:
