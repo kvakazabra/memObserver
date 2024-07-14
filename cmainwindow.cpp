@@ -164,14 +164,21 @@ void CMainWindow::selectSection(int idx) {
     updateSectionInfoLines();
 }
 
-const CSection& CMainWindow::getSelectedSection() {
-    if(m_SelectedSection == -1)
-        throw std::out_of_range("Check m_SelectedSection for -1 before calling getSelectedSection");
+const CModule& CMainWindow::getSelectedModule() {
+    if(m_SelectedModule == -1)
+        throw std::out_of_range("Check m_SelectedModule for -1 before calling getSelectedModule");
 
     if(m_SelectedProcess->moduleList().expired())
         throw std::runtime_error("Expired std::weak_ptr<CModuleList>, this should not happen");
 
-    const auto& selectedModule = m_SelectedProcess->moduleList().lock()->data()[m_SelectedModule];
+    return m_SelectedProcess->moduleList().lock()->data()[m_SelectedModule];
+}
+
+const CSection& CMainWindow::getSelectedSection() {
+    if(m_SelectedSection == -1)
+        throw std::out_of_range("Check m_SelectedSection for -1 before calling getSelectedSection");
+
+    const auto& selectedModule = getSelectedModule();
     if(m_SelectedSection >= selectedModule.sections().size())
         throw std::out_of_range("Error: m_SelectedSection >= sections.size()");
 

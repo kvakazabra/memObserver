@@ -50,8 +50,9 @@ private:
     std::shared_ptr<IProcessIO> m_SelectedProcess{ };
     int m_SelectedModule{ -1 }, m_SelectedSection{ -1 };
     void selectModule(int idx = -1);
-    const CSection& getSelectedSection();
     void selectSection(int idx = -1);
+    const CModule& getSelectedModule();
+    const CSection& getSelectedSection();
     void goToSelectedSection();
 
     void updateProcessesCombo();
