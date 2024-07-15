@@ -36,7 +36,7 @@ void CMainWindow::setupTextures() {
         throw std::runtime_error("Failed to load resources");
 }
 
-void CMainWindow::connectButtons() {
+void CMainWindow::connectSignals() {
     QObject::connect(m_Settings, &CSettings::moduleInfoFormatChanged, this, &CMainWindow::onModuleInfoFormatChanged);
     QObject::connect(m_Settings, &CSettings::memoryViewFormatChanged, this, &CMainWindow::onMemoryAddressFormatChanged);
 
@@ -53,7 +53,7 @@ CMainWindow::CMainWindow(QWidget *parent)
 
     showConsole();
     setupTextures();
-    connectButtons();
+    connectSignals();
 
     updateMemoryDataEdit();
     startMemoryUpdateThread();

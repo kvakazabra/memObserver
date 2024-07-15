@@ -49,7 +49,7 @@ private:
 
     std::shared_ptr<IProcessIO> selectedProcess();
 
-    void connectButtons(); // todo: rename this
+    void connectSignals();
     void setupTextures();
     void startMemoryUpdateThread();
 
