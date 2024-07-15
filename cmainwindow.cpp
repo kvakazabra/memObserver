@@ -41,6 +41,9 @@ void CMainWindow::connectButtons() {
     QObject::connect(m_Settings, &CSettings::memoryViewFormatChanged, this, &CMainWindow::onMemoryAddressFormatChanged);
 
     QObject::connect(this, &CMainWindow::updateSignal, this, &CMainWindow::updateMemoryDataEdit);
+
+    QObject::connect(m_ProcessSelector, &CProcessSelector::processAttached, this, &CMainWindow::onProcessAttach);
+    QObject::connect(m_ProcessSelector, &CProcessSelector::processDetached, this, &CMainWindow::onProcessDetach);
 }
 
 CMainWindow::CMainWindow(QWidget *parent)
@@ -52,89 +55,31 @@ CMainWindow::CMainWindow(QWidget *parent)
     setupTextures();
     connectButtons();
 
-    updateProcessesCombo();
-    updateCurrentProcessLabel();
     updateMemoryDataEdit();
     startMemoryUpdateThread();
+
+    m_ProcessSelector->show();
 }
 
 CMainWindow::~CMainWindow() {
     delete ui;
-    m_SelectedProcess.reset();
-    m_ProcessList.reset();
 }
 
-void CMainWindow::on_processRefreshButton_clicked() {
-    m_ProcessList->refresh();
-    updateProcessesCombo();
-}
+std::shared_ptr<IProcessIO> CMainWindow::selectedProcess() {
+    std::weak_ptr<IProcessIO> process = m_ProcessSelector->selectedProcess();
+    if(process.expired())
+        return { };
 
-void CMainWindow::invalidProcessSlot() {
-    if(!m_SelectedProcess)
-        return;
-
-    CProcessWinIO* winProcess = dynamic_cast<CProcessWinIO*>(m_SelectedProcess.get());
-    if(winProcess) {
-        updateProcessLastLabel(
-            QString("The process exited with code ") +
-            QString::number(winProcess->exitCode(), 16)
-        );
-        updateStatusBar(QString("Detached"));
-        return;
-    }
-
-    updateProcessLastLabel(QString("The process crashed"));
-    updateStatusBar(QString("Crashed"));
-}
-
-void CMainWindow::updateProcessesCombo() {
-    const auto processes = m_ProcessList->data();
-    ui->processComboBox->clear();
-
-    for(const auto& process : processes) {
-        ui->processComboBox->addItem(QString(process.format().c_str()));
-    }
-
-    updateProcessLastLabel(QString("Total Processes: ") + QString::number(processes.size()));
-}
-
-void CMainWindow::updateProcessLastLabel(const QString& message) {
-    ui->processLastMessage->setText(message);
-}
-
-void CMainWindow::updateCurrentProcessLabel(const CProcessMemento& process) {
-    ui->processCurrentLabel->setText(QString("Current Process: ") +
-                                     QString(process.name().c_str()) + QString(" [") + QString::number(process.id()) + QString("]"));
-}
-
-void CMainWindow::on_processComboBox_activated(int index) {
-    if(index >= m_ProcessList->data().size())
-        throw std::out_of_range("Out of bounds: m_ProcessList");
-
-    onProcessDetach();
-    auto selectedProcess = std::make_shared<CProcessWinIO>(m_ProcessList->data()[index]);
-    if(!selectedProcess->isAttached()) {
-        updateProcessLastLabel(QString("Failed to attach"));
-        return;
-    }
-
-    m_SelectedProcess = std::move(selectedProcess);
-    onProcessAttach();
+    return process.lock();
 }
 
 void CMainWindow::onProcessAttach() {
-    updateStatusBar(QString("Attached to ") + QString(m_SelectedProcess->memento().name().c_str()) + QString(" successfully"));
-    updateProcessLastLabel(QString("Attached successfully"));
-    updateCurrentProcessLabel(m_SelectedProcess->memento());
-
-    if(m_SelectedProcess->moduleList().expired())
+    if(selectedProcess()->moduleList().expired())
         throw std::runtime_error("Expired std::weak_ptr<CModuleList>, this should not happen");
-
-    for(auto& module : m_SelectedProcess->moduleList().lock()->data()) {
+    
+    for(auto& module : selectedProcess()->moduleList().lock()->data()) {
         ui->modulesList->addItem(QString(module.memento().format().c_str()));
     }
-
-    QObject::connect(m_SelectedProcess.get(), &IProcessIO::invalidProcessSignal, this, &CMainWindow::invalidProcessSlot);
 }
 
 void CMainWindow::onProcessDetach() {
@@ -151,9 +96,6 @@ void CMainWindow::onProcessDetach() {
 
     ui->modulesList->clear();
     selectModule(-1);
-
-    m_SelectedProcess.reset();
-    updateCurrentProcessLabel();
 }
 
 void CMainWindow::selectModule(int idx) {
@@ -170,10 +112,10 @@ const CModule& CMainWindow::getSelectedModule() {
     if(m_SelectedModule == -1)
         throw std::out_of_range("Check m_SelectedModule for -1 before calling getSelectedModule");
 
-    if(m_SelectedProcess->moduleList().expired())
+    if(selectedProcess()->moduleList().expired())
         throw std::runtime_error("Expired std::weak_ptr<CModuleList>, this should not happen");
 
-    return m_SelectedProcess->moduleList().lock()->data()[m_SelectedModule];
+    return selectedProcess()->moduleList().lock()->data()[m_SelectedModule];
 }
 
 const CSection& CMainWindow::getSelectedSection() {
@@ -188,7 +130,7 @@ const CSection& CMainWindow::getSelectedSection() {
 }
 
 void CMainWindow::goToAddress(std::uint64_t address) {
-    if(!m_SelectedProcess)
+    if(!selectedProcess())
         return;
 
     ui->memoryStartAddress->setText(QString::number(address, 16));
@@ -214,14 +156,14 @@ void CMainWindow::goToSelectedSection() {
 }
 
 void CMainWindow::on_modulesRefreshButton_clicked() {
-    if(!m_SelectedProcess)
+    if(!selectedProcess())
         return;
 
-    if(m_SelectedProcess->moduleList().expired())
+    if(selectedProcess()->moduleList().expired())
         throw std::runtime_error("Expired std::weak_ptr<CModuleList>, this should not happen");
 
     selectModule(-1);
-    m_SelectedProcess->moduleList().lock()->refresh();
+    selectedProcess()->moduleList().lock()->refresh();
 }
 
 void CMainWindow::updateSectionInfoLines() {
@@ -254,10 +196,10 @@ void CMainWindow::updateModuleInfoLines() {
         return;
     }
 
-    if(m_SelectedProcess->moduleList().expired())
+    if(selectedProcess()->moduleList().expired())
         throw std::runtime_error("Expired std::weak_ptr<CModuleList>, this should not happen");
 
-    const auto modulesData = m_SelectedProcess->moduleList().lock()->data();
+    const auto modulesData = selectedProcess()->moduleList().lock()->data();
     if(m_SelectedModule >= modulesData.size())
         throw std::out_of_range("Error: m_SelectedModule >= modulesData.size()");
 
@@ -289,14 +231,14 @@ void CMainWindow::onModuleInfoFormatChanged() {
 
 void CMainWindow::updateMemoryDataEdit() {
     ui->memoryDataEdit->clear();
-    if(!m_SelectedProcess || !m_MemoryStartAddress)
+    if(!selectedProcess() || !m_MemoryStartAddress)
         return;
 
     std::uint64_t currentAddress = m_MemoryStartAddress + m_MemoryOffset;
 
     std::uint8_t* buffer = new std::uint8_t[c_MemoryBufferSize]{ };
     CBytesProtectionMaskFormattablePlain protectionMask(c_MemoryBufferSize);
-    m_SelectedProcess->readPages(currentAddress, c_MemoryBufferSize, buffer, &protectionMask);
+    selectedProcess()->readPages(currentAddress, c_MemoryBufferSize, buffer, &protectionMask);
 
     for(std::size_t i = 0; i < c_MemoryRows; ++i) {
         QString bytesRow{ }, charsRow{ };
@@ -330,7 +272,7 @@ void CMainWindow::updateMemoryDataEdit() {
 
     ui->memoryDataEdit->append(QString("--------------------"));
 
-    MBIEx mbi{ m_SelectedProcess->query(currentAddress) };
+    MBIEx mbi{ selectedProcess()->query(currentAddress) };
     ui->memoryDataEdit->append(QString("Page Base and Size: ") +
                                         QString::number(reinterpret_cast<std::uint64_t>(mbi.BaseAddress), 16) +
                                         QString(" - ") +
@@ -391,7 +333,7 @@ void CMainWindow::on_sectionsList_itemDoubleClicked(QListWidgetItem *item) {
 }
 
 void CMainWindow::on_dumpSectionButton_clicked() {
-    if(!m_SelectedProcess || m_SelectedSection == -1) {
+    if(!selectedProcess() || m_SelectedSection == -1) {
         updateSectionDumpLastLabel("You must select a process and a section you want to dump");
         return;
     }
@@ -403,11 +345,11 @@ void CMainWindow::on_dumpSectionButton_clicked() {
         return;
     }
 
-    const auto dumpBuffer = CSectionDumper(m_SelectedProcess, baseAddress, size).dump();
+    const auto dumpBuffer = CSectionDumper(selectedProcess(), baseAddress, size).dump();
     const auto dumpPath =
         Utilities::generatePathForDump(
-            m_SelectedProcess->memento().name(),
-            m_SelectedProcess->moduleList().lock()->data()[m_SelectedModule].memento().name(),
+            selectedProcess()->memento().name(),
+            selectedProcess()->moduleList().lock()->data()[m_SelectedModule].memento().name(),
             selectedSection.tag()
         );
 
@@ -429,7 +371,7 @@ void CMainWindow::on_actionOpen_Program_Data_Folder_triggered() {
 }
 
 void CMainWindow::on_dumpModuleButton_clicked() {
-    if(!m_SelectedProcess || m_SelectedModule == -1) {
+    if(!selectedProcess() || m_SelectedModule == -1) {
         updateModuleDumpLastLabel("You must select a process and a module you want to dump");
         return;
     }
@@ -441,10 +383,10 @@ void CMainWindow::on_dumpModuleButton_clicked() {
         return;
     }
 
-    const auto dumpBuffer = CModuleDumper(m_SelectedProcess, baseAddress).dump();
+    const auto dumpBuffer = CModuleDumper(selectedProcess(), baseAddress).dump();
     const auto dumpPath =
         Utilities::generatePathForDump(
-            m_SelectedProcess->memento().name(),
+            selectedProcess()->memento().name(),
             module.memento().name(),
             ""
         );
@@ -471,5 +413,9 @@ void CMainWindow::on_modulesList_itemDoubleClicked(QListWidgetItem *item) {
 
 void CMainWindow::on_actionSettings_triggered() {
     m_Settings->show();
+}
+
+void CMainWindow::on_actionProcess_Selector_triggered() {
+    m_ProcessSelector->show();
 }
 

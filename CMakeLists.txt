@@ -30,6 +30,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         process_win32.h process_win32.cpp
         dumper.h dumper.cpp
         settings.h settings.cpp settings.ui
+        process_selector.h process_selector.cpp process_selector.ui
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET memObserver APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

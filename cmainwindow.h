@@ -5,6 +5,7 @@
 #include "module.h"
 #include "dumper.h"
 #include "settings.h"
+#include "process_selector.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -20,11 +21,8 @@ public:
     CMainWindow(QWidget *parent = nullptr);
     ~CMainWindow();
 
+    void updateStatusBar(const QString& message = "");
 private slots:
-    void on_processRefreshButton_clicked();
-    void on_processComboBox_activated(int index);
-    void invalidProcessSlot();
-
     void on_modulesRefreshButton_clicked();
     void on_modulesList_currentRowChanged(int currentRow);
     void on_modulesList_itemDoubleClicked(QListWidgetItem *item);
@@ -40,17 +38,21 @@ private slots:
 
     void onModuleInfoFormatChanged();
     void onMemoryAddressFormatChanged();
+
     void on_actionOpen_Program_Data_Folder_triggered();
+    void on_actionSettings_triggered();
+    void on_actionProcess_Selector_triggered();
 private:
     Ui::CMainWindow *ui;
     CSettings* m_Settings{ new CSettings(this) };
+    CProcessSelector* m_ProcessSelector{ new CProcessSelector(this) };
 
-    void connectButtons();
+    std::shared_ptr<IProcessIO> selectedProcess();
+
+    void connectButtons(); // todo: rename this
     void setupTextures();
     void startMemoryUpdateThread();
 
-    std::shared_ptr<CProcessList> m_ProcessList{ std::make_shared<CProcessList>() };
-    std::shared_ptr<IProcessIO> m_SelectedProcess{ };
     int m_SelectedModule{ -1 }, m_SelectedSection{ -1 };
     void selectModule(int idx = -1);
     void selectSection(int idx = -1);
@@ -60,11 +62,6 @@ private:
     void goToSelectedSection();
     void goToAddress(std::uint64_t address);
 
-    void updateStatusBar(const QString& message = "");
-
-    void updateProcessesCombo();
-    void updateProcessLastLabel(const QString& message);
-    void updateCurrentProcessLabel(const CProcessMemento& process = CProcessMemento(0, "none"));
     void updateModuleInfoLines();
     void updateSectionInfoLines();
     void updateSectionDumpLastLabel(const QString& message = "");
@@ -83,7 +80,6 @@ private:
     static constexpr std::size_t c_MemoryBufferSize{ c_MemoryBytesInRow * c_MemoryRows };
 private slots:
     void updateMemoryDataEdit();
-    void on_actionSettings_triggered();
 signals:
     void updateSignal();
 };
