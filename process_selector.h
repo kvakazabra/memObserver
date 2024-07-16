@@ -20,7 +20,6 @@ public:
 signals:
     void processAttached();
     void processDetached();
-    void refreshProcesses();
 private slots:
     void on_processRefreshButton_clicked();
     void on_processComboBox_activated(int index);
@@ -38,6 +37,6 @@ private:
     void onProcessDetach();
     void updateMainWindowStatusBar(const QString& message = "");
 
-    std::shared_ptr<CProcessList> m_ProcessList{ std::make_shared<CProcessList>() }; // todo: to unique ptr i guess
+    std::unique_ptr<CProcessList> m_ProcessList{ std::make_unique<CProcessList>() };
     std::shared_ptr<IProcessIO> m_SelectedProcess{ };
 };

@@ -35,7 +35,6 @@ const std::vector<CProcessMemento>& CProcessSelector::processes() const {
 void CProcessSelector::on_processRefreshButton_clicked() {
     m_ProcessList->refresh();
     updateProcessesCombo();
-    emit refreshProcesses();
 }
 
 void CProcessSelector::updateProcessesCombo() {
