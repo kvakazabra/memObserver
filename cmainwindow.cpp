@@ -204,3 +204,7 @@ void CMainWindow::on_actionModule_List_triggered() {
     m_ModuleList->show();
 }
 
+void CMainWindow::on_actionExit_triggered() {
+    close();
+}
+

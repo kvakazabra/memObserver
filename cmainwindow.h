@@ -34,6 +34,8 @@ private slots:
 
     void updateMemoryDataEdit();
     void onMemoryAddressFormatChanged();
+    void on_actionExit_triggered();
+
 signals:
     void updateMemorySignal();
 private:
