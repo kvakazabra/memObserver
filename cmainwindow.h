@@ -44,8 +44,8 @@ private slots:
     void on_actionProcess_Selector_triggered();
 private:
     Ui::CMainWindow *ui;
-    CSettings* m_Settings{ new CSettings(this) };
-    CProcessSelector* m_ProcessSelector{ new CProcessSelector(this) };
+    CSettings* m_Settings;
+    CProcessSelector* m_ProcessSelector;
 
     std::shared_ptr<IProcessIO> selectedProcess();
 

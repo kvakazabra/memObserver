@@ -2,6 +2,7 @@
 
 #include <QDialog>
 #include "process.h"
+#include "settings.h"
 
 namespace Ui {
 class CProcessSelector;
@@ -12,7 +13,7 @@ class CProcessSelector : public QDialog
     Q_OBJECT
 
 public:
-    explicit CProcessSelector(QWidget *parent = nullptr);
+    CProcessSelector(QWidget *parent, CSettings* settings);
     ~CProcessSelector();
 
     std::weak_ptr<IProcessIO> selectedProcess() const;
@@ -32,6 +33,7 @@ private:
     void updateCurrentProcessLabel(const CProcessMemento& process = CProcessMemento(0, "none"));
 private:
     Ui::CProcessSelector *ui;
+    CSettings* m_Settings;
 
     void onProcessAttach();
     void onProcessDetach();

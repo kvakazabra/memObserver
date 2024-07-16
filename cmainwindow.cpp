@@ -1,6 +1,5 @@
 #include "cmainwindow.h"
 #include "./ui_cmainwindow.h"
-#include "process_win32.h"
 
 #include <QPixmap>
 #include <thread>
@@ -48,7 +47,9 @@ void CMainWindow::connectSignals() {
 
 CMainWindow::CMainWindow(QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::CMainWindow) {
+    , ui(new Ui::CMainWindow)
+    , m_Settings{ new CSettings(this) }
+    , m_ProcessSelector{ new CProcessSelector(this, m_Settings) } {
     ui->setupUi(this);
 
     showConsole();
@@ -63,6 +64,8 @@ CMainWindow::CMainWindow(QWidget *parent)
 
 CMainWindow::~CMainWindow() {
     delete ui;
+    delete m_ProcessSelector;
+    delete m_Settings;
 }
 
 std::shared_ptr<IProcessIO> CMainWindow::selectedProcess() {

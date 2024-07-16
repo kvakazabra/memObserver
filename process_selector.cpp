@@ -4,9 +4,10 @@
 #include "cmainwindow.h"
 #include "process_win32.h"
 
-CProcessSelector::CProcessSelector(QWidget *parent)
+CProcessSelector::CProcessSelector(QWidget *parent, CSettings* settings)
     : QDialog(parent)
-    , ui(new Ui::CProcessSelector) {
+    , ui(new Ui::CProcessSelector)
+    , m_Settings{ settings } {
 
     if(!qobject_cast<CMainWindow*>(this->parent())) // im not sure how qobject_cast works (if it works like dynamic_cast then it's ok)
         throw std::runtime_error("CMainWindow must be a parent of CProcessSelector");
