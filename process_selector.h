@@ -17,26 +17,28 @@ public:
 
     std::shared_ptr<IProcessIO> selectedProcess() const;
     const std::vector<CProcessMemento>& processes() const;
-signals:
-    void processAttached();
-    void processDetached();
 private slots:
     void on_processRefreshButton_clicked();
     void on_processComboBox_activated(int index);
-    void invalidProcessSlot();
 
     void on_closeButton_clicked();
+
+    void invalidProcessSlot();
+signals:
+    void processAttached();
+    void processDetached();
 private:
+    void onProcessAttach();
+    void onProcessDetach();
+
     void updateProcessesCombo();
     void updateProcessLastLabel(const QString& message);
     void updateCurrentProcessLabel(const CProcessMemento& process = CProcessMemento(0, "none"));
+
+    void updateMainWindowStatusBar(const QString& message = "");
 private:
     Ui::CProcessSelector *ui;
     CSettingsWindow* m_Settings;
-
-    void onProcessAttach();
-    void onProcessDetach();
-    void updateMainWindowStatusBar(const QString& message = "");
 
     std::unique_ptr<CProcessList> m_ProcessList{ std::make_unique<CProcessList>() };
     std::shared_ptr<IProcessIO> m_SelectedProcess{ };

@@ -28,32 +28,32 @@ private slots:
     void on_dumpSectionButton_clicked();
     void on_dumpModuleButton_clicked();
 
-    void onModuleInfoFormatChanged();
     void on_closeButton_clicked();
-private:
-    int m_SelectedModule{ -1 }, m_SelectedSection{ -1 };
-    void selectModule(int idx = -1);
-    void selectSection(int idx = -1);
-    const CModule& getSelectedModule();
-    const CSection& getSelectedSection();
-    void goToSelectedModule();
-    void goToSelectedSection();
-
-    void updateModuleInfoLines();
-    void updateSectionInfoLines();
-    void updateSectionDumpLastLabel(const QString& message = "");
-    void updateModuleDumpLastLabel(const QString& message = "");
-
-    void updateMainWindowStatusBar(const QString& message = "");
-private:
-    Ui::CModuleListWindow *ui;
-    CSettingsWindow* m_Settings;
-    CProcessSelectorWindow* m_ProcessSelector;
-
-    void connectSignals();
 
     void onProcessAttach();
     void onProcessDetach();
+    void onModuleInfoFormatChanged();
+private:
+    void connectSignals();
 
+    void selectModule(int idx = -1);
+    const CModule& getSelectedModule();
+    void goToSelectedModule();
+    void updateModuleInfoLines();
+    void updateModuleDumpLastLabel(const QString& message = "");
+
+    void selectSection(int idx = -1);
+    const CSection& getSelectedSection();
+    void goToSelectedSection();
+    void updateSectionInfoLines();
+    void updateSectionDumpLastLabel(const QString& message = "");
+
+    void updateMainWindowStatusBar(const QString& message = "");
     void goToMemoryAddress(std::uint64_t address);
+private:
+    int m_SelectedModule{ -1 }, m_SelectedSection{ -1 };
+
+    Ui::CModuleListWindow *ui;
+    CSettingsWindow* m_Settings;
+    CProcessSelectorWindow* m_ProcessSelector;
 };

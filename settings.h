@@ -18,20 +18,22 @@ public:
     bool memoryViewIsAutoUpdateEnabled() const;
     int memoryViewAutoUpdateInterval() const;
 private slots:
-    void on_settingsCloseButton_clicked();
     void on_memoryRealTimeUpdateCheckbox_stateChanged(int arg1);
     void on_memoryUpdateIntervalSlider_valueChanged(int value);
     void on_memoryOffsetAbsoluteButton_clicked();
     void on_memoryOffsetRelativeButton_clicked();
+
     void on_moduleInfoDecimalButton_clicked();
     void on_moduleInfoHexadecimalButton_clicked();
+
+    void on_settingsCloseButton_clicked();
 signals:
     void moduleInfoFormatChanged();
     void memoryViewFormatChanged();
 private:
-    Ui::CSettings *ui;
-
     void connectButtons();
+private:
+    Ui::CSettings *ui;
 
     class ModuleInfo {
     public:
