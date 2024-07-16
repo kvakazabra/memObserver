@@ -5,14 +5,14 @@ CSettingsWindow::CSettingsWindow(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::CSettings) {
     ui->setupUi(this);
-    connectButtons();
+    connectSignals();
 }
 
 CSettingsWindow::~CSettingsWindow() {
     delete ui;
 }
 
-void CSettingsWindow::connectButtons() {
+void CSettingsWindow::connectSignals() {
     // nothing here...
 }
 

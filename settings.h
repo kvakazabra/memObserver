@@ -31,7 +31,7 @@ signals:
     void moduleInfoFormatChanged();
     void memoryViewFormatChanged();
 private:
-    void connectButtons();
+    void connectSignals();
 private:
     Ui::CSettings *ui;
 
