@@ -31,11 +31,10 @@ private slots:
     void on_actionSettings_triggered();
     void on_actionProcess_Selector_triggered();
     void on_actionModule_List_triggered();
+    void on_actionExit_triggered();
 
     void updateMemoryDataEdit();
     void onMemoryAddressFormatChanged();
-    void on_actionExit_triggered();
-
 signals:
     void updateMemorySignal();
 private:
