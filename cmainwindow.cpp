@@ -12,7 +12,7 @@ void showConsole() {
 
 void CMainWindow::startMemoryUpdateThread() {
     static auto autoUpdateMemoryViewer =
-        [](CMainWindow* window, CSettings* settings) -> void {
+        [](CMainWindow* window, CSettingsWindow* settings) -> void {
         while(true) {
             std::this_thread::sleep_for( std::chrono::milliseconds(settings->memoryViewAutoUpdateInterval()) );
             if(!settings->memoryViewIsAutoUpdateEnabled())
@@ -36,20 +36,20 @@ void CMainWindow::setupTextures() {
 }
 
 void CMainWindow::connectSignals() {
-    QObject::connect(m_Settings, &CSettings::moduleInfoFormatChanged, this, &CMainWindow::onModuleInfoFormatChanged);
-    QObject::connect(m_Settings, &CSettings::memoryViewFormatChanged, this, &CMainWindow::onMemoryAddressFormatChanged);
+    QObject::connect(m_Settings, &CSettingsWindow::moduleInfoFormatChanged, this, &CMainWindow::onModuleInfoFormatChanged);
+    QObject::connect(m_Settings, &CSettingsWindow::memoryViewFormatChanged, this, &CMainWindow::onMemoryAddressFormatChanged);
 
     QObject::connect(this, &CMainWindow::updateMemorySignal, this, &CMainWindow::updateMemoryDataEdit);
 
-    QObject::connect(m_ProcessSelector, &CProcessSelector::processAttached, this, &CMainWindow::onProcessAttach);
-    QObject::connect(m_ProcessSelector, &CProcessSelector::processDetached, this, &CMainWindow::onProcessDetach);
+    QObject::connect(m_ProcessSelector, &CProcessSelectorWindow::processAttached, this, &CMainWindow::onProcessAttach);
+    QObject::connect(m_ProcessSelector, &CProcessSelectorWindow::processDetached, this, &CMainWindow::onProcessDetach);
 }
 
 CMainWindow::CMainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::CMainWindow)
-    , m_Settings{ new CSettings(this) }
-    , m_ProcessSelector{ new CProcessSelector(this, m_Settings) } {
+    , m_Settings{ new CSettingsWindow(this) }
+    , m_ProcessSelector{ new CProcessSelectorWindow(this, m_Settings) } {
     ui->setupUi(this);
 
     showConsole();

@@ -8,13 +8,13 @@ namespace Ui {
 class CProcessSelector;
 }
 
-class CProcessSelector : public QDialog
+class CProcessSelectorWindow : public QDialog
 {
     Q_OBJECT
 
 public:
-    CProcessSelector(QWidget *parent, CSettings* settings);
-    ~CProcessSelector();
+    CProcessSelectorWindow(QWidget *parent, CSettingsWindow* settings);
+    ~CProcessSelectorWindow();
 
     std::weak_ptr<IProcessIO> selectedProcess() const;
     const std::vector<CProcessMemento>& processes() const;
@@ -33,7 +33,7 @@ private:
     void updateCurrentProcessLabel(const CProcessMemento& process = CProcessMemento(0, "none"));
 private:
     Ui::CProcessSelector *ui;
-    CSettings* m_Settings;
+    CSettingsWindow* m_Settings;
 
     void onProcessAttach();
     void onProcessDetach();

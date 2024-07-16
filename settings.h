@@ -6,13 +6,13 @@ namespace Ui {
 class CSettings;
 }
 
-class CSettings : public QDialog
+class CSettingsWindow : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit CSettings(QWidget *parent = nullptr);
-    ~CSettings();
+    explicit CSettingsWindow(QWidget *parent = nullptr);
+    ~CSettingsWindow();
 
     bool moduleInfoIsHexadecimalFormat() const;
     bool memoryViewIsOffsetRelative() const;

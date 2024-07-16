@@ -4,7 +4,7 @@
 #include "cmainwindow.h"
 #include "process_win32.h"
 
-CProcessSelector::CProcessSelector(QWidget *parent, CSettings* settings)
+CProcessSelectorWindow::CProcessSelectorWindow(QWidget *parent, CSettingsWindow* settings)
     : QDialog(parent)
     , ui(new Ui::CProcessSelector)
     , m_Settings{ settings } {
@@ -18,27 +18,27 @@ CProcessSelector::CProcessSelector(QWidget *parent, CSettings* settings)
     updateCurrentProcessLabel();
 }
 
-CProcessSelector::~CProcessSelector() {
+CProcessSelectorWindow::~CProcessSelectorWindow() {
     delete ui;
 
     m_SelectedProcess.reset();
     m_ProcessList.reset();
 }
 
-std::weak_ptr<IProcessIO> CProcessSelector::selectedProcess() const {
+std::weak_ptr<IProcessIO> CProcessSelectorWindow::selectedProcess() const {
     return m_SelectedProcess;
 }
 
-const std::vector<CProcessMemento>& CProcessSelector::processes() const {
+const std::vector<CProcessMemento>& CProcessSelectorWindow::processes() const {
     return m_ProcessList->data();
 }
 
-void CProcessSelector::on_processRefreshButton_clicked() {
+void CProcessSelectorWindow::on_processRefreshButton_clicked() {
     m_ProcessList->refresh();
     updateProcessesCombo();
 }
 
-void CProcessSelector::updateProcessesCombo() {
+void CProcessSelectorWindow::updateProcessesCombo() {
     const auto processes = m_ProcessList->data();
     ui->processComboBox->clear();
 
@@ -49,16 +49,16 @@ void CProcessSelector::updateProcessesCombo() {
     updateProcessLastLabel(QString("Total Processes: ") + QString::number(processes.size()));
 }
 
-void CProcessSelector::updateProcessLastLabel(const QString& message) {
+void CProcessSelectorWindow::updateProcessLastLabel(const QString& message) {
     ui->processLastMessage->setText(message);
 }
 
-void CProcessSelector::updateCurrentProcessLabel(const CProcessMemento& process) {
+void CProcessSelectorWindow::updateCurrentProcessLabel(const CProcessMemento& process) {
     ui->processCurrentLabel->setText(QString("Current Process: ") +
                                      QString(process.name().c_str()) + QString(" [") + QString::number(process.id()) + QString("]"));
 }
 
-void CProcessSelector::on_processComboBox_activated(int index) {
+void CProcessSelectorWindow::on_processComboBox_activated(int index) {
     if(index >= m_ProcessList->data().size())
         throw std::out_of_range("Out of bounds: m_ProcessList");
 
@@ -73,25 +73,25 @@ void CProcessSelector::on_processComboBox_activated(int index) {
     onProcessAttach();
 }
 
-void CProcessSelector::onProcessAttach() {
+void CProcessSelectorWindow::onProcessAttach() {
     updateMainWindowStatusBar(QString("Attached to ") + QString(m_SelectedProcess->memento().name().c_str()) + QString(" successfully"));
 
     updateProcessLastLabel(QString("Attached successfully"));
     updateCurrentProcessLabel(m_SelectedProcess->memento());
 
-    QObject::connect(m_SelectedProcess.get(), &IProcessIO::invalidProcessSignal, this, &CProcessSelector::invalidProcessSlot);
+    QObject::connect(m_SelectedProcess.get(), &IProcessIO::invalidProcessSignal, this, &CProcessSelectorWindow::invalidProcessSlot);
 
     emit processAttached();
 }
 
-void CProcessSelector::onProcessDetach() {
+void CProcessSelectorWindow::onProcessDetach() {
     emit processDetached();
 
     m_SelectedProcess.reset();
     updateCurrentProcessLabel();
 }
 
-void CProcessSelector::invalidProcessSlot() {
+void CProcessSelectorWindow::invalidProcessSlot() {
     if(!m_SelectedProcess)
         return;
 
@@ -110,11 +110,11 @@ void CProcessSelector::invalidProcessSlot() {
     updateMainWindowStatusBar(QString("Crashed"));
 }
 
-void CProcessSelector::updateMainWindowStatusBar(const QString& message) {
+void CProcessSelectorWindow::updateMainWindowStatusBar(const QString& message) {
     qobject_cast<CMainWindow*>(this->parent())->updateStatusBar(message);
 }
 
-void CProcessSelector::on_closeButton_clicked() {
+void CProcessSelectorWindow::on_closeButton_clicked() {
     hide();
 }
 
