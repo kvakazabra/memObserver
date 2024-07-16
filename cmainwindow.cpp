@@ -36,7 +36,6 @@ void CMainWindow::setupTextures() {
 }
 
 void CMainWindow::connectSignals() {
-    QObject::connect(m_Settings, &CSettingsWindow::moduleInfoFormatChanged, this, &CMainWindow::onModuleInfoFormatChanged);
     QObject::connect(m_Settings, &CSettingsWindow::memoryViewFormatChanged, this, &CMainWindow::onMemoryAddressFormatChanged);
 
     QObject::connect(this, &CMainWindow::updateMemorySignal, this, &CMainWindow::updateMemoryDataEdit);
@@ -49,7 +48,8 @@ CMainWindow::CMainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::CMainWindow)
     , m_Settings{ new CSettingsWindow(this) }
-    , m_ProcessSelector{ new CProcessSelectorWindow(this, m_Settings) } {
+    , m_ProcessSelector{ new CProcessSelectorWindow(this, m_Settings) }
+    , m_ModuleList{ new CModuleListWindow(this, m_Settings, m_ProcessSelector) } {
     ui->setupUi(this);
 
     showConsole();
@@ -64,76 +64,22 @@ CMainWindow::CMainWindow(QWidget *parent)
 
 CMainWindow::~CMainWindow() {
     delete ui;
+    delete m_ModuleList;
     delete m_ProcessSelector;
     delete m_Settings;
 }
 
-std::shared_ptr<IProcessIO> CMainWindow::selectedProcess() {
-    std::weak_ptr<IProcessIO> process = m_ProcessSelector->selectedProcess();
-    if(process.expired())
-        return { };
-
-    return process.lock();
-}
-
 void CMainWindow::onProcessAttach() {
-    if(selectedProcess()->moduleList().expired())
-        throw std::runtime_error("Expired std::weak_ptr<CModuleList>, this should not happen");
-    
-    for(auto& module : selectedProcess()->moduleList().lock()->data()) {
-        ui->modulesList->addItem(QString(module.memento().format().c_str()));
-    }
+    //
 }
 
 void CMainWindow::onProcessDetach() {
-    updateStatusBar();
-
     m_MemoryStartAddress = { };
     m_MemoryOffset = { };
-
-    ui->sectionsList->clear();
-    selectSection(-1);
-
-    updateSectionDumpLastLabel();
-    updateModuleDumpLastLabel();
-
-    ui->modulesList->clear();
-    selectModule(-1);
 }
 
-void CMainWindow::selectModule(int idx) {
-    m_SelectedModule = idx;
-    updateModuleInfoLines();
-}
-
-void CMainWindow::selectSection(int idx) {
-    m_SelectedSection = idx;
-    updateSectionInfoLines();
-}
-
-const CModule& CMainWindow::getSelectedModule() {
-    if(m_SelectedModule == -1)
-        throw std::out_of_range("Check m_SelectedModule for -1 before calling getSelectedModule");
-
-    if(selectedProcess()->moduleList().expired())
-        throw std::runtime_error("Expired std::weak_ptr<CModuleList>, this should not happen");
-
-    return selectedProcess()->moduleList().lock()->data()[m_SelectedModule];
-}
-
-const CSection& CMainWindow::getSelectedSection() {
-    if(m_SelectedSection == -1)
-        throw std::out_of_range("Check m_SelectedSection for -1 before calling getSelectedSection");
-
-    const auto& selectedModule = getSelectedModule();
-    if(m_SelectedSection >= selectedModule.sections().size())
-        throw std::out_of_range("Error: m_SelectedSection >= sections.size()");
-
-    return selectedModule.sections()[m_SelectedSection];
-}
-
-void CMainWindow::goToAddress(std::uint64_t address) {
-    if(!selectedProcess())
+void CMainWindow::goToMemoryAddress(std::uint64_t address) {
+    if(!m_ProcessSelector->selectedProcess())
         return;
 
     ui->memoryStartAddress->setText(QString::number(address, 16));
@@ -142,106 +88,16 @@ void CMainWindow::goToAddress(std::uint64_t address) {
     updateMemoryDataEdit();
 }
 
-void CMainWindow::goToSelectedModule() {
-    if(m_SelectedModule == -1)
-        return;
-
-    const auto baseAddress = std::get<0>(getSelectedModule().memento().info());
-    goToAddress(baseAddress);
-}
-
-void CMainWindow::goToSelectedSection() {
-    if(m_SelectedSection == -1)
-        return;
-
-    const auto baseAddress = std::get<0>(getSelectedSection().info());
-    goToAddress(baseAddress);
-}
-
-void CMainWindow::on_modulesRefreshButton_clicked() {
-    if(!selectedProcess())
-        return;
-
-    if(selectedProcess()->moduleList().expired())
-        throw std::runtime_error("Expired std::weak_ptr<CModuleList>, this should not happen");
-
-    selectModule(-1);
-    selectedProcess()->moduleList().lock()->refresh();
-}
-
-void CMainWindow::updateSectionInfoLines() {
-    if(m_SelectedSection == -1) {
-        ui->sectionInfoBaseAddressLine->setText("");
-        ui->sectionInfoSizeLine->setText("");
-        return;
-    }
-
-    const auto [baseAddress, size] = getSelectedSection().info();
-    ui->sectionInfoBaseAddressLine->setText(QString::number(baseAddress, 16));
-    ui->sectionInfoSizeLine->setText(QString::number(size, 16));
-}
-
-void CMainWindow::updateSectionDumpLastLabel(const QString& message) {
-    ui->dumpSectionLastMessageLabel->setText(message);
-}
-
-void CMainWindow::updateModuleDumpLastLabel(const QString& message) {
-    ui->dumpModuleLastMessageLabel->setText(message);
-}
-
-void CMainWindow::updateModuleInfoLines() {
-    ui->sectionsList->clear();
-
-    if(m_SelectedModule == -1) {
-        ui->moduleInfoNameLine->setText("");
-        ui->moduleInfoBaseAddressLine->setText("");
-        ui->moduleInfoSizeLine->setText("");
-        return;
-    }
-
-    if(selectedProcess()->moduleList().expired())
-        throw std::runtime_error("Expired std::weak_ptr<CModuleList>, this should not happen");
-
-    const auto modulesData = selectedProcess()->moduleList().lock()->data();
-    if(m_SelectedModule >= modulesData.size())
-        throw std::out_of_range("Error: m_SelectedModule >= modulesData.size()");
-
-    const auto& selectedModule = modulesData[m_SelectedModule];
-    const auto [baseAddress, size] = selectedModule.memento().info();
-
-    const int base = m_Settings->moduleInfoIsHexadecimalFormat() ? 16 : 10;
-
-    ui->moduleInfoNameLine->setText(QString(selectedModule.memento().name().c_str()));
-    ui->moduleInfoBaseAddressLine->setText(QString::number(baseAddress, base));
-    ui->moduleInfoSizeLine->setText(QString::number(size, base));
-
-    for(auto& section : selectedModule.sections()) {
-        ui->sectionsList->addItem(QString(section.tag()));
-    }
-}
-
-void CMainWindow::on_modulesList_currentRowChanged(int currentRow) {
-    selectModule(currentRow);
-}
-
-void CMainWindow::on_sectionsList_currentRowChanged(int currentRow) {
-    selectSection(currentRow);
-}
-
-void CMainWindow::onModuleInfoFormatChanged() {
-    updateModuleInfoLines();
-}
-
 void CMainWindow::updateMemoryDataEdit() {
     ui->memoryDataEdit->clear();
-    if(!selectedProcess() || !m_MemoryStartAddress)
+    if(!m_ProcessSelector->selectedProcess() || !m_MemoryStartAddress)
         return;
 
     std::uint64_t currentAddress = m_MemoryStartAddress + m_MemoryOffset;
 
     std::uint8_t* buffer = new std::uint8_t[c_MemoryBufferSize]{ };
     CBytesProtectionMaskFormattablePlain protectionMask(c_MemoryBufferSize);
-    selectedProcess()->readPages(currentAddress, c_MemoryBufferSize, buffer, &protectionMask);
+    m_ProcessSelector->selectedProcess()->readPages(currentAddress, c_MemoryBufferSize, buffer, &protectionMask);
 
     for(std::size_t i = 0; i < c_MemoryRows; ++i) {
         QString bytesRow{ }, charsRow{ };
@@ -275,7 +131,7 @@ void CMainWindow::updateMemoryDataEdit() {
 
     ui->memoryDataEdit->append(QString("--------------------"));
 
-    MBIEx mbi{ selectedProcess()->query(currentAddress) };
+    MBIEx mbi{ m_ProcessSelector->selectedProcess()->query(currentAddress) };
     ui->memoryDataEdit->append(QString("Page Base and Size: ") +
                                         QString::number(reinterpret_cast<std::uint64_t>(mbi.BaseAddress), 16) +
                                         QString(" - ") +
@@ -326,92 +182,14 @@ void CMainWindow::on_memoryResetOffsetButton_clicked() {
     updateMemoryDataEdit();
 }
 
-void CMainWindow::on_sectionsListGoToButton_clicked() {
-    goToSelectedSection();
-}
-
-void CMainWindow::on_sectionsList_itemDoubleClicked(QListWidgetItem *item) {
-    selectSection(item->listWidget()->row(item));
-    goToSelectedSection();
-}
-
-void CMainWindow::on_dumpSectionButton_clicked() {
-    if(!selectedProcess() || m_SelectedSection == -1) {
-        updateSectionDumpLastLabel("You must select a process and a section you want to dump");
-        return;
-    }
-
-    const auto& selectedSection = getSelectedSection();
-    auto [baseAddress, size] = selectedSection.info();
-    if(!baseAddress || !size) {
-        updateSectionDumpLastLabel("Base address or size is null, can not perform an operation");
-        return;
-    }
-
-    const auto dumpBuffer = CSectionDumper(selectedProcess(), baseAddress, size).dump();
-    const auto dumpPath =
-        Utilities::generatePathForDump(
-            selectedProcess()->memento().name(),
-            selectedProcess()->moduleList().lock()->data()[m_SelectedModule].memento().name(),
-            selectedSection.tag()
-        );
-
-    if(std::filesystem::exists(dumpPath)) {
-        updateSectionDumpLastLabel("File with the name of the dump already exist, delete it manually to proceed");
-        return;
-    }
-
-    std::ofstream outFile(dumpPath, std::ios::trunc | std::ios::binary);
-    outFile.write(reinterpret_cast<const char*>(dumpBuffer.data()), dumpBuffer.size());
-    updateSectionDumpLastLabel("Dumped successfully");
-    updateStatusBar("Saved to " + QString(dumpPath.c_str()));
-}
-
 void CMainWindow::on_actionOpen_Program_Data_Folder_triggered() {
     char cmd[MAX_PATH + 20]{ };
     sprintf_s(cmd, "explorer %s", Utilities::programDataDirectory().c_str());
     system(cmd);
 }
 
-void CMainWindow::on_dumpModuleButton_clicked() {
-    if(!selectedProcess() || m_SelectedModule == -1) {
-        updateModuleDumpLastLabel("You must select a process and a module you want to dump");
-        return;
-    }
-
-    const auto& module = getSelectedModule();
-    auto [baseAddress, size] = module.memento().info();
-    if(!baseAddress || !size) {
-        updateModuleDumpLastLabel("Base address or size is null, can not perform an operation");
-        return;
-    }
-
-    const auto dumpBuffer = CModuleDumper(selectedProcess(), baseAddress).dump();
-    const auto dumpPath =
-        Utilities::generatePathForDump(
-            selectedProcess()->memento().name(),
-            module.memento().name(),
-            ""
-        );
-
-    if(std::filesystem::exists(dumpPath)) {
-        updateModuleDumpLastLabel("File with the name of the dump already exist, delete it manually to proceed");
-        return;
-    }
-
-    std::ofstream outFile(dumpPath, std::ios::trunc | std::ios::binary);
-    outFile.write(reinterpret_cast<const char*>(dumpBuffer.data()), dumpBuffer.size());
-    updateModuleDumpLastLabel("Dumped successfully");
-    updateStatusBar("Saved to " + QString(dumpPath.c_str()));
-}
-
 void CMainWindow::updateStatusBar(const QString& message) {
     ui->statusbar->showMessage(message);
-}
-
-void CMainWindow::on_modulesList_itemDoubleClicked(QListWidgetItem *item) {
-    selectModule(item->listWidget()->row(item));
-    goToSelectedModule();
 }
 
 void CMainWindow::on_actionSettings_triggered() {
@@ -420,5 +198,9 @@ void CMainWindow::on_actionSettings_triggered() {
 
 void CMainWindow::on_actionProcess_Selector_triggered() {
     m_ProcessSelector->show();
+}
+
+void CMainWindow::on_actionModule_List_triggered() {
+    m_ModuleList->show();
 }
 

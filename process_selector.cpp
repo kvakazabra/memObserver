@@ -25,7 +25,7 @@ CProcessSelectorWindow::~CProcessSelectorWindow() {
     m_ProcessList.reset();
 }
 
-std::weak_ptr<IProcessIO> CProcessSelectorWindow::selectedProcess() const {
+std::shared_ptr<IProcessIO> CProcessSelectorWindow::selectedProcess() const {
     return m_SelectedProcess;
 }
 

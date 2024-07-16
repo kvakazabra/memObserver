@@ -2,10 +2,9 @@
 #include <QMainWindow>
 #include <QListWidgetItem>
 #include "process.h"
-#include "module.h"
-#include "dumper.h"
 #include "settings.h"
 #include "process_selector.h"
+#include "module_list.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -22,51 +21,28 @@ public:
     ~CMainWindow();
 
     void updateStatusBar(const QString& message = "");
+    void goToMemoryAddress(std::uint64_t address);
 private slots:
-    void on_modulesRefreshButton_clicked();
-    void on_modulesList_currentRowChanged(int currentRow);
-    void on_modulesList_itemDoubleClicked(QListWidgetItem *item);
-    void on_sectionsList_currentRowChanged(int currentRow);
-    void on_sectionsListGoToButton_clicked();
-    void on_sectionsList_itemDoubleClicked(QListWidgetItem *item);
-    void on_dumpSectionButton_clicked();
-    void on_dumpModuleButton_clicked();
 
     void on_memoryVScrollBar_valueChanged(int value);
     void on_memoryStartAddress_textChanged(const QString &arg1);
     void on_memoryResetOffsetButton_clicked();
 
-    void onModuleInfoFormatChanged();
     void onMemoryAddressFormatChanged();
 
     void on_actionOpen_Program_Data_Folder_triggered();
     void on_actionSettings_triggered();
     void on_actionProcess_Selector_triggered();
+    void on_actionModule_List_triggered();
 private:
     Ui::CMainWindow *ui;
     CSettingsWindow* m_Settings;
     CProcessSelectorWindow* m_ProcessSelector;
-
-
-    std::shared_ptr<IProcessIO> selectedProcess();
+    CModuleListWindow* m_ModuleList;
 
     void connectSignals();
     void setupTextures();
     void startMemoryUpdateThread();
-
-    int m_SelectedModule{ -1 }, m_SelectedSection{ -1 };
-    void selectModule(int idx = -1);
-    void selectSection(int idx = -1);
-    const CModule& getSelectedModule();
-    const CSection& getSelectedSection();
-    void goToSelectedModule();
-    void goToSelectedSection();
-    void goToAddress(std::uint64_t address);
-
-    void updateModuleInfoLines();
-    void updateSectionInfoLines();
-    void updateSectionDumpLastLabel(const QString& message = "");
-    void updateModuleDumpLastLabel(const QString& message = "");
 
     void onProcessAttach();
     void onProcessDetach();

@@ -1,5 +1,4 @@
 #pragma once
-
 #include <QDialog>
 #include "process.h"
 #include "settings.h"
@@ -16,7 +15,7 @@ public:
     CProcessSelectorWindow(QWidget *parent, CSettingsWindow* settings);
     ~CProcessSelectorWindow();
 
-    std::weak_ptr<IProcessIO> selectedProcess() const;
+    std::shared_ptr<IProcessIO> selectedProcess() const;
     const std::vector<CProcessMemento>& processes() const;
 signals:
     void processAttached();
