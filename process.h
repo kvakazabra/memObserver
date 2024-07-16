@@ -96,6 +96,7 @@ public:
     const std::vector<CModule>& data() const;
     void cleanup();
 private:
+    void swapMainModule();
     void sortByAddress();
     void sortByName(); // could use Strategy here?
 

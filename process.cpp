@@ -166,6 +166,7 @@ void CModuleList::refresh() {
 
     //sortByAddress();
     sortByName();
+    swapMainModule();
 }
 
 const std::vector<CModule>& CModuleList::data() const {
@@ -174,6 +175,22 @@ const std::vector<CModule>& CModuleList::data() const {
 
 void CModuleList::cleanup() {
     m_Modules.clear();
+}
+
+void CModuleList::swapMainModule() {
+    const auto& processName = m_ThisProcess->memento().name();
+    if(processName.empty())
+        return;
+
+    const auto mainModuleIterator = std::find_if(m_Modules.begin(), m_Modules.end(), [&processName](const CModule& module) -> bool {
+        if(module.memento().name() == processName)
+            return true;
+        return false;
+    });
+    if(mainModuleIterator == m_Modules.end())
+        return;
+
+    std::swap(*m_Modules.begin(), *mainModuleIterator);
 }
 
 void CModuleList::sortByName() {
