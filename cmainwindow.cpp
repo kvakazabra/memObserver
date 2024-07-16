@@ -18,7 +18,7 @@ void CMainWindow::startMemoryUpdateThread() {
             if(!settings->memoryViewIsAutoUpdateEnabled())
                 continue;
 
-            emit window->updateSignal();
+            emit window->updateMemorySignal();
         }
     };
 
@@ -39,7 +39,7 @@ void CMainWindow::connectSignals() {
     QObject::connect(m_Settings, &CSettings::moduleInfoFormatChanged, this, &CMainWindow::onModuleInfoFormatChanged);
     QObject::connect(m_Settings, &CSettings::memoryViewFormatChanged, this, &CMainWindow::onMemoryAddressFormatChanged);
 
-    QObject::connect(this, &CMainWindow::updateSignal, this, &CMainWindow::updateMemoryDataEdit);
+    QObject::connect(this, &CMainWindow::updateMemorySignal, this, &CMainWindow::updateMemoryDataEdit);
 
     QObject::connect(m_ProcessSelector, &CProcessSelector::processAttached, this, &CMainWindow::onProcessAttach);
     QObject::connect(m_ProcessSelector, &CProcessSelector::processDetached, this, &CMainWindow::onProcessDetach);

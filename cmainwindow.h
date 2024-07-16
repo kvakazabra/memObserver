@@ -81,7 +81,7 @@ private:
 private slots:
     void updateMemoryDataEdit();
 signals:
-    void updateSignal();
+    void updateMemorySignal();
 };
 
 
