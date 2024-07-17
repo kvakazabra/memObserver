@@ -28,6 +28,16 @@ private:
     std::string m_Name{ }, m_Description{ };
 };
 
+class CSortProcessesByName : public ISortStrategy<CProcessMemento> {
+public:
+    void sort(std::vector<CProcessMemento>& v) override;
+};
+
+class CSortProcessesByID : public ISortStrategy<CProcessMemento> {
+public:
+    void sort(std::vector<CProcessMemento>& v) override;
+};
+
 class CProcessList final {
 public:
     CProcessList();
@@ -39,9 +49,6 @@ public:
     const std::vector<CProcessMemento>& data() const;
     void cleanup();
 private:
-    void sortByID(); // can use Strategy here?
-    void sortByName();
-
     std::vector<CProcessMemento> m_Processes{ };
 };
 
@@ -86,6 +93,16 @@ signals:
     void invalidProcessSignal();
 };
 
+class CSortModulesByName : public ISortStrategy<CModule> {
+public:
+    void sort(std::vector<CModule>& v) override;
+};
+
+class CSortModulesByAddress : public ISortStrategy<CModule> {
+public:
+    void sort(std::vector<CModule>& v) override;
+};
+
 // must be instantiated in IProcessIO context
 class CModuleList final {
 public:
@@ -97,8 +114,6 @@ public:
     void cleanup();
 private:
     void swapMainModule();
-    void sortByAddress();
-    void sortByName(); // could use Strategy here?
 
     IProcessIO* m_ThisProcess{ };
     std::vector<CModule> m_Modules{ };

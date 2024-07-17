@@ -12,6 +12,12 @@ public:
     virtual std::string format() const = 0;
 };
 
+template<class T>
+class ISortStrategy {
+public:
+    virtual void sort(std::vector<T>& v) = 0;
+};
+
 class Utilities {
 public:
     static bool isHandleValid(HANDLE h);

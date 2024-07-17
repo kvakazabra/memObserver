@@ -63,8 +63,7 @@ void CProcessList::refresh() {
         } while(Process32Next(snapshot, &entry));
     }
 
-    //sortByID();
-    sortByName();
+    CSortProcessesByName().sort(m_Processes);
 }
 
 const std::vector<CProcessMemento>& CProcessList::data() const {
@@ -75,12 +74,12 @@ void CProcessList::cleanup() {
     m_Processes.clear();
 }
 
-void CProcessList::sortByID() {
-    std::sort(m_Processes.begin(), m_Processes.end());
+void CSortProcessesByID::sort(std::vector<CProcessMemento>& v) {
+    std::sort(v.begin(), v.end());
 }
 
-void CProcessList::sortByName() {
-    std::sort(m_Processes.begin(), m_Processes.end(), [](const CProcessMemento& p1, const CProcessMemento& p2) -> bool {
+void CSortProcessesByName::sort(std::vector<CProcessMemento>& v) {
+    std::sort(v.begin(), v.end(), [](const CProcessMemento& p1, const CProcessMemento& p2) -> bool {
         return p1.name() < p2.name();
     });
 }
@@ -164,8 +163,7 @@ void CModuleList::refresh() {
         } while(Module32Next(snapshot, &entry));
     }
 
-    //sortByAddress();
-    sortByName();
+    CSortModulesByName().sort(m_Modules);
     swapMainModule();
 }
 
@@ -193,14 +191,14 @@ void CModuleList::swapMainModule() {
     std::swap(*m_Modules.begin(), *mainModuleIterator);
 }
 
-void CModuleList::sortByName() {
-    std::sort(m_Modules.begin(), m_Modules.end(), [](const CModule& m1, const CModule& m2) -> bool {
-        return m1.memento().name() < m2.memento().name();
+void CSortModulesByAddress::sort(std::vector<CModule>& v) {
+    std::sort(v.begin(), v.end(), [](const CModule& m1, const CModule& m2) -> bool {
+        return std::get<0>(m1.memento().info()) < std::get<0>(m2.memento().info());
     });
 }
 
-void CModuleList::sortByAddress() {
-    std::sort(m_Modules.begin(), m_Modules.end(), [](const CModule& m1, const CModule& m2) -> bool {
-        return std::get<0>(m1.memento().info()) < std::get<0>(m2.memento().info());
+void CSortModulesByName::sort(std::vector<CModule>& v) {
+    std::sort(v.begin(), v.end(), [](const CModule& m1, const CModule& m2) -> bool {
+        return m1.memento().name() < m2.memento().name();
     });
 }
