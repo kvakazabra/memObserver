@@ -15,6 +15,8 @@ public:
 template<class T>
 class ISortStrategy {
 public:
+    virtual ~ISortStrategy() = default;
+
     virtual void sort(std::vector<T>& v) = 0;
 };
 
