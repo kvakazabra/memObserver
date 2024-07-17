@@ -5,6 +5,7 @@ MemObserver is a tool designed for inspecting and monitoring the memory of runni
 #### Key Features:
 - Process Memory Inspection: View and analyze the memory of almost any running process.
 - Module Exploration: List and explore the modules loaded by a process.
+- Module and Section Dumping: Dump modules or their sections for detailed dynamic analysis.
 - User-Friendly Interface: Intuitive and straightforward interface for easy navigation and operation.  
 *Note:* This project relies on the Windows API to access process memory, so it wouldn't be able to access protected process's memory. However, you may add your own interface for reading/writing process memory: check [advanced usage](#Advanced-Usage).
 ## Table of Contents:
