@@ -15,18 +15,16 @@ CSettingsWindow::~CSettingsWindow() {
 }
 
 void CSettingsWindow::connectSignals() {
-    // nothing here...
+    QObject::connect(ui->processListSortNoneButton, &QAbstractButton::clicked, this, &CSettingsWindow::changeProcessListSortType);
+    QObject::connect(ui->processListSortNameButton, &QAbstractButton::clicked, this, &CSettingsWindow::changeProcessListSortType);
+    QObject::connect(ui->processListSortIDButton, &QAbstractButton::clicked, this, &CSettingsWindow::changeProcessListSortType);
 
-    QObject::connect(ui->processListSortNoneButton, &QAbstractButton::clicked, this, &CSettingsWindow::processListSortTypeChanged);
-    QObject::connect(ui->processListSortNameButton, &QAbstractButton::clicked, this, &CSettingsWindow::processListSortTypeChanged);
-    QObject::connect(ui->processListSortIDButton, &QAbstractButton::clicked, this, &CSettingsWindow::processListSortTypeChanged);
-
-    QObject::connect(ui->moduleListSortNoneButton, &QAbstractButton::clicked, this, &CSettingsWindow::moduleListSortTypeChanged);
-    QObject::connect(ui->moduleListSortNameButton, &QAbstractButton::clicked, this, &CSettingsWindow::moduleListSortTypeChanged);
-    QObject::connect(ui->moduleListSortAddressButton, &QAbstractButton::clicked, this, &CSettingsWindow::moduleListSortTypeChanged);
+    QObject::connect(ui->moduleListSortNoneButton, &QAbstractButton::clicked, this, &CSettingsWindow::changeModuleListSortType);
+    QObject::connect(ui->moduleListSortNameButton, &QAbstractButton::clicked, this, &CSettingsWindow::changeModuleListSortType);
+    QObject::connect(ui->moduleListSortAddressButton, &QAbstractButton::clicked, this, &CSettingsWindow::changeModuleListSortType);
 }
 
-void CSettingsWindow::processListSortTypeChanged() {
+void CSettingsWindow::changeProcessListSortType() {
     static std::unordered_map<QString, TSort> titleToSortTypeMap{
         { "None", TSort::None },
         { "Sort by ID", TSort::ID },
@@ -38,9 +36,10 @@ void CSettingsWindow::processListSortTypeChanged() {
         return;
 
     ProcessList::m_SortType = titleToSortTypeMap[v1->text()];
+    emit processListSortTypeChanged();
 }
 
-void CSettingsWindow::moduleListSortTypeChanged() {
+void CSettingsWindow::changeModuleListSortType() {
     static std::unordered_map<QString, TSort> titleToSortTypeMap{
         { "None", TSort::None },
         { "Sort by Address", TSort::ID },
@@ -52,6 +51,7 @@ void CSettingsWindow::moduleListSortTypeChanged() {
         return;
 
     ModuleList::m_SortType = titleToSortTypeMap[v1->text()];
+    emit moduleListSortTypeChanged();
 }
 
 TSort CSettings::processListSortType() const {

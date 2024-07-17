@@ -28,6 +28,8 @@ signals:
     void processAttached();
     void processDetached();
 private:
+    void connectSignals();
+
     void onProcessAttach();
     void onProcessDetach();
 

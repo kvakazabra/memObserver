@@ -14,8 +14,14 @@ CProcessSelectorWindow::CProcessSelectorWindow(QWidget *parent, CSettingsWindow*
 
     ui->setupUi(this);
 
+    connectSignals();
+
     updateProcessesCombo();
     updateCurrentProcessLabel();
+}
+
+void CProcessSelectorWindow::connectSignals() {
+    QObject::connect(m_Settings, &CSettingsWindow::processListSortTypeChanged, this, &CProcessSelectorWindow::on_processRefreshButton_clicked);
 }
 
 CProcessSelectorWindow::~CProcessSelectorWindow() {

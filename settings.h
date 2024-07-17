@@ -51,16 +51,14 @@ public:
     }
 };
 
-class CSettingsWindow : public QDialog, public CSettings
-{
+class CSettingsWindow : public QDialog, public CSettings {
     Q_OBJECT
 public:
     explicit CSettingsWindow(QWidget *parent = nullptr);
     ~CSettingsWindow();
-
 private slots:
-    void processListSortTypeChanged();
-    void moduleListSortTypeChanged();
+    void changeProcessListSortType();
+    void changeModuleListSortType();
 
     void on_memoryRealTimeUpdateCheckbox_stateChanged(int arg1);
     void on_memoryUpdateIntervalSlider_valueChanged(int value);
@@ -74,6 +72,8 @@ private slots:
 signals:
     void moduleInfoFormatChanged();
     void memoryViewFormatChanged();
+    void processListSortTypeChanged();
+    void moduleListSortTypeChanged();
 private:
     void connectSignals();
 private:
