@@ -52,7 +52,9 @@ CMainWindow::CMainWindow(QWidget *parent)
     , m_ModuleList{ new CModuleListWindow(this, m_Settings, m_ProcessSelector) } {
     ui->setupUi(this);
 
+#ifndef NDEBUG
     showConsole();
+#endif
     setupTextures();
     connectSignals();
 
