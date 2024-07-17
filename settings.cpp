@@ -6,6 +6,8 @@ CSettingsWindow::CSettingsWindow(QWidget *parent)
     , ui(new Ui::CSettings) {
     ui->setupUi(this);
     connectSignals();
+
+    CSettingsManager::settings(this); // initialize CSettingsManager
 }
 
 CSettingsWindow::~CSettingsWindow() {
@@ -14,22 +16,65 @@ CSettingsWindow::~CSettingsWindow() {
 
 void CSettingsWindow::connectSignals() {
     // nothing here...
+
+    QObject::connect(ui->processListSortNoneButton, &QAbstractButton::clicked, this, &CSettingsWindow::processListSortTypeChanged);
+    QObject::connect(ui->processListSortNameButton, &QAbstractButton::clicked, this, &CSettingsWindow::processListSortTypeChanged);
+    QObject::connect(ui->processListSortIDButton, &QAbstractButton::clicked, this, &CSettingsWindow::processListSortTypeChanged);
+
+    QObject::connect(ui->moduleListSortNoneButton, &QAbstractButton::clicked, this, &CSettingsWindow::moduleListSortTypeChanged);
+    QObject::connect(ui->moduleListSortNameButton, &QAbstractButton::clicked, this, &CSettingsWindow::moduleListSortTypeChanged);
+    QObject::connect(ui->moduleListSortAddressButton, &QAbstractButton::clicked, this, &CSettingsWindow::moduleListSortTypeChanged);
 }
 
+void CSettingsWindow::processListSortTypeChanged() {
+    static std::unordered_map<QString, TSort> titleToSortTypeMap{
+        { "None", TSort::None },
+        { "Sort by ID", TSort::ID },
+        { "Sort by Name", TSort::Name },
+    };
 
-bool CSettingsWindow::moduleInfoIsHexadecimalFormat() const {
+    QRadioButton* v1 = qobject_cast<QRadioButton*>(sender());
+    if(!v1)
+        return;
+
+    ProcessList::m_SortType = titleToSortTypeMap[v1->text()];
+}
+
+void CSettingsWindow::moduleListSortTypeChanged() {
+    static std::unordered_map<QString, TSort> titleToSortTypeMap{
+        { "None", TSort::None },
+        { "Sort by Address", TSort::ID },
+        { "Sort by Name", TSort::Name },
+    };
+
+    QRadioButton* v1 = qobject_cast<QRadioButton*>(sender());
+    if(!v1)
+        return;
+
+    ModuleList::m_SortType = titleToSortTypeMap[v1->text()];
+}
+
+TSort CSettings::processListSortType() const {
+    return ProcessList::m_SortType;
+}
+
+TSort CSettings::moduleListSortType() const {
+    return ModuleList::m_SortType;
+}
+
+bool CSettings::moduleInfoIsHexadecimalFormat() const {
     return ModuleInfo::m_IsHexadecimal;
 }
 
-bool CSettingsWindow::memoryViewIsOffsetRelative() const {
+bool CSettings::memoryViewIsOffsetRelative() const {
     return MemoryView::m_IsOffsetRelative;
 }
 
-bool CSettingsWindow::memoryViewIsAutoUpdateEnabled() const {
+bool CSettings::memoryViewIsAutoUpdateEnabled() const {
     return MemoryView::m_AutoUpdateEnabled;
 }
 
-int CSettingsWindow::memoryViewAutoUpdateInterval() const {
+int CSettings::memoryViewAutoUpdateInterval() const {
     return MemoryView::m_AutoUpdateInterval;
 }
 
