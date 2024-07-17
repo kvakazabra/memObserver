@@ -54,8 +54,6 @@ public:
 class CSettingsWindow : public QDialog, public CSettings
 {
     Q_OBJECT
-
-public:
 public:
     explicit CSettingsWindow(QWidget *parent = nullptr);
     ~CSettingsWindow();

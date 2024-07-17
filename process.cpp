@@ -1,4 +1,5 @@
 #include "process.h"
+#include "settings.h"
 
 #include <TlHelp32.h>
 
@@ -63,7 +64,19 @@ void CProcessList::refresh() {
         } while(Process32Next(snapshot, &entry));
     }
 
-    CSortProcessesByName().sort(m_Processes);
+    std::unique_ptr<ISortStrategy<CProcessMemento>> sortStrategy{ std::make_unique<CNoSort<CProcessMemento>>() };
+    switch(CSettingsManager::settings()->processListSortType()) {
+        case TSort::None: break;
+        case TSort::ID:
+            sortStrategy = std::make_unique<CSortProcessesByID>();
+            break;
+        case TSort::Name:
+            sortStrategy = std::make_unique<CSortProcessesByName>();
+            break;
+        default:
+            throw std::out_of_range("CProcessList::refresh -> sortType is out of range");
+    }
+    sortStrategy->sort(m_Processes);
 }
 
 const std::vector<CProcessMemento>& CProcessList::data() const {
@@ -163,7 +176,20 @@ void CModuleList::refresh() {
         } while(Module32Next(snapshot, &entry));
     }
 
-    CSortModulesByName().sort(m_Modules);
+    std::unique_ptr<ISortStrategy<CModule>> sortStrategy{ std::make_unique<CNoSort<CModule>>() };
+    switch(CSettingsManager::settings()->moduleListSortType()) {
+        case TSort::None: break;
+        case TSort::ID:
+            sortStrategy = std::make_unique<CSortModulesByAddress>();
+            break;
+        case TSort::Name:
+            sortStrategy = std::make_unique<CSortModulesByName>();
+            break;
+        default:
+            throw std::out_of_range("CModuleList::refresh -> sortType is out of range");
+    }
+    sortStrategy->sort(m_Modules);
+
     swapMainModule();
 }
 
