@@ -18,6 +18,12 @@ public:
     virtual void sort(std::vector<T>& v) = 0;
 };
 
+template<class T>
+class CNoSort : public ISortStrategy<T> {
+public:
+    void sort(std::vector<T>& v) override { };
+};
+
 class Utilities {
 public:
     static bool isHandleValid(HANDLE h);
