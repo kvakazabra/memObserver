@@ -36,6 +36,8 @@ private slots:
 private:
     void connectSignals();
 
+    void updateModuleList();
+
     void selectModule(int idx = -1);
     const CModule& getSelectedModule();
     void goToSelectedModule();

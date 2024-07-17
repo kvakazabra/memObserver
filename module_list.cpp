@@ -27,13 +27,19 @@ void CModuleListWindow::connectSignals() {
     QObject::connect(m_ProcessSelector, &CProcessSelectorWindow::processDetached, this, &CModuleListWindow::onProcessDetach);
 }
 
-void CModuleListWindow::onProcessAttach() {
-    if(m_ProcessSelector->selectedProcess()->moduleList().expired())
-        throw std::runtime_error("Expired std::weak_ptr<CModuleList>, this should not happen");
+void CModuleListWindow::updateModuleList() {
+    ui->moduleList->clear();
 
     for(auto& module : m_ProcessSelector->selectedProcess()->moduleList().lock()->data()) {
         ui->moduleList->addItem(QString(module.memento().format().c_str()));
     }
+}
+
+void CModuleListWindow::onProcessAttach() {
+    if(m_ProcessSelector->selectedProcess()->moduleList().expired())
+        throw std::runtime_error("Expired std::weak_ptr<CModuleList>, this should not happen");
+
+    updateModuleList();
 }
 
 void CModuleListWindow::onProcessDetach() {
@@ -102,6 +108,7 @@ void CModuleListWindow::on_modulesRefreshButton_clicked() {
         throw std::runtime_error("Expired std::weak_ptr<CModuleList>, this should not happen");
 
     m_ProcessSelector->selectedProcess()->moduleList().lock()->refresh();
+    updateModuleList();
     selectModule(-1);
 }
 
