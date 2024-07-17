@@ -6,9 +6,27 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>260</width>
-    <height>170</height>
+    <width>274</width>
+    <height>182</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>274</width>
+    <height>182</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>274</width>
+    <height>182</height>
+   </size>
   </property>
   <property name="font">
    <font>
@@ -18,13 +36,13 @@
   <property name="windowTitle">
    <string>Process Selector</string>
   </property>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>238</width>
-     <height>147</height>
+     <width>254</width>
+     <height>163</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_2">
