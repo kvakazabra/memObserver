@@ -101,8 +101,8 @@ void CModuleListWindow::on_modulesRefreshButton_clicked() {
     if(m_ProcessSelector->selectedProcess()->moduleList().expired())
         throw std::runtime_error("Expired std::weak_ptr<CModuleList>, this should not happen");
 
-    selectModule(-1);
     m_ProcessSelector->selectedProcess()->moduleList().lock()->refresh();
+    selectModule(-1);
 }
 
 void CModuleListWindow::updateSectionInfoLines() {

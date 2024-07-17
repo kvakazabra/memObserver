@@ -18,13 +18,13 @@
   <property name="windowTitle">
    <string>Module List</string>
   </property>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>10</x>
      <y>10</y>
-     <width>421</width>
-     <height>471</height>
+     <width>440</width>
+     <height>481</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -54,7 +54,7 @@
               </spacer>
              </item>
              <item>
-              <widget class="QPushButton" name="modulesRefreshButton_2">
+              <widget class="QPushButton" name="modulesRefreshButton">
                <property name="enabled">
                 <bool>true</bool>
                </property>
