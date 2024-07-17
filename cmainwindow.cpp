@@ -31,7 +31,9 @@ void CMainWindow::startMemoryUpdateThread() {
 
 void CMainWindow::setupTextures() {
     QPixmap refreshIcon(":/resources/images/refreshIcon.png");
-    if(refreshIcon.isNull())
+    QPixmap mainIcon(":/resources/images/mainIcon.png");
+
+    if(refreshIcon.isNull() || mainIcon.isNull())
         throw std::runtime_error("Failed to load resources");
 }
 

@@ -37,7 +37,8 @@
    <string>Settings</string>
   </property>
   <property name="windowIcon">
-   <iconset theme="applications-engineering"/>
+   <iconset resource="resources.qrc">
+    <normaloff>:/resources/images/mainIcon.png</normaloff>:/resources/images/mainIcon.png</iconset>
   </property>
   <widget class="QWidget" name="layoutWidget_3">
    <property name="geometry">
@@ -336,6 +337,8 @@
    </layout>
   </widget>
  </widget>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

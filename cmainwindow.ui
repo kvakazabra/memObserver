@@ -42,6 +42,10 @@
   <property name="windowTitle">
    <string>Memory Observer</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="resources.qrc">
+    <normaloff>:/resources/images/mainIcon.png</normaloff>:/resources/images/mainIcon.png</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
@@ -168,6 +172,8 @@ li.checked::marker { content: &quot;\2612&quot;; }
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="resources.qrc"/>
+ </resources>
  <connections/>
 </ui>

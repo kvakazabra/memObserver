@@ -64,9 +64,5 @@ private:
  * TODO:
  * add buttons to change page protection
  * add different types in memory
- * [/] move process selector and module list to separate windows (will add when i finish working on everything else)
- * sort of processes and modules by names
- *
- * maybe:
- * async loading of all modules (idk why i thought about that, even on a potato pc itd still be fast enough), p.s. but practicing std::async would be nice
+ *  maybe break down all UI and functional classes into two, like CSettings where settings would be accessed, and CSettingsWindow which can be shown and derived from CSettings
 */
