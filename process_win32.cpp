@@ -6,7 +6,6 @@ CProcessWinIO::CProcessWinIO(const CProcessMemento& process)
     printf("[CProcessWinIO] Attaching: %s\n", memento().name().c_str());
 
     m_ModuleList = std::make_unique<CModuleList>(this);
-    m_ModuleList->refresh();
 }
 
 CProcessWinIO::CProcessWinIO(std::uint32_t id)
