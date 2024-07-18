@@ -2,6 +2,7 @@
 #include "./ui_cmainwindow.h"
 
 #include <QPixmap>
+#include <QFontDatabase>
 #include <thread>
 
 void showConsole() {
@@ -35,6 +36,9 @@ void CMainWindow::setupTextures() {
 
     if(refreshIcon.isNull() || mainIcon.isNull())
         throw std::runtime_error("Failed to load resources");
+
+    QFontDatabase::addApplicationFont(":/resources/fonts/UbuntuMono-Regular.ttf");
+    QFont font = QFont("Ubuntu Mono", 9, 1);
 }
 
 void CMainWindow::connectSignals() {
