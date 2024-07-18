@@ -1,7 +1,9 @@
 #include "process.h"
 #include "settings.h"
+#include "ntapi.h"
 
 #include <TlHelp32.h>
+#include <Psapi.h>
 
 CProcessMemento::CProcessMemento(const std::uint32_t id, const std::string& name)
     : m_Id{ id }
@@ -66,11 +68,11 @@ void CProcessList::refresh() {
 
     std::unique_ptr<ISortStrategy<CProcessMemento>> sortStrategy{ std::make_unique<CNoSort<CProcessMemento>>() };
     switch(CSettingsManager::settings()->processListSortType()) {
-        case TSort::None: break;
-        case TSort::ID:
+        case CSettings::TSort::None: break;
+        case CSettings::TSort::ID:
             sortStrategy = std::make_unique<CSortProcessesByID>();
             break;
-        case TSort::Name:
+        case CSettings::TSort::Name:
             sortStrategy = std::make_unique<CSortProcessesByName>();
             break;
         default:
@@ -155,12 +157,16 @@ CModuleList::CModuleList(IProcessIO* process)
     refresh();
 }
 
-void CModuleList::refresh() {
-    cleanup();
+std::vector<CModule> CRetrieveModuleListSnapshot::retrieve() const {
+    printf("[%s] Retrieving via CreateToolhelp32Snapshot\n", __FUNCTION__);
+    if(!m_ThisProcess)
+        return { };
 
     HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE, m_ThisProcess->memento().id());
     if(!Utilities::isHandleValid(snapshot))
-        return;
+        return { };
+
+    std::vector<CModule> modules{ };
 
     MODULEENTRY32 entry{ };
     entry.dwSize = sizeof(MODULEENTRY32);
@@ -168,21 +174,161 @@ void CModuleList::refresh() {
     if(Module32First(snapshot, &entry)) {
         do {
             std::wstring wName = std::wstring(entry.szModule);
-            m_Modules.emplace_back(CModuleMemento(
-                                       reinterpret_cast<std::uint64_t>(entry.modBaseAddr),
-                                       static_cast<std::uint32_t>(entry.modBaseSize),
-                                       std::string(wName.begin(), wName.end()
-                                                   )), m_ThisProcess);
+            modules.emplace_back(CModuleMemento(
+                reinterpret_cast<std::uint64_t>(entry.modBaseAddr),
+                static_cast<std::uint32_t>(entry.modBaseSize),
+                std::string(wName.begin(), wName.end())),
+                m_ThisProcess
+            );
         } while(Module32Next(snapshot, &entry));
     }
 
+    return modules;
+}
+
+std::vector<CModule> CRetrieveModuleListEnumerate::retrieve() const {
+    return { };
+    // std::unique_ptr<HMODULE[]> rawModules{ std::make_unique<HMODULE[]>(1) };
+    // DWORD neededSize{ }, size{ 8 };
+    // int i{ };
+    // while(++i < 100) {
+    //     if(!EnumProcessModules(m_hProcess, rawModules.get(), size, &neededSize)) {
+    //         printf("EnumProcessModules failed (%d)\n", GetLastError());
+    //         return { };
+    //     }
+
+    //     if(size != neededSize) {
+    //         rawModules = std::make_unique<HMODULE[]>(neededSize / 8);
+    //         size = neededSize;
+    //     }
+    //     else break;
+    // }
+    // if(i > 95) {
+    //     printf("i exceeded the limit in %s\n", __FUNCTION__);
+    //     return { };
+    // }
+
+    // std::vector<CModule> modules{ };
+    // for(std::size_t i = 0; i < static_cast<std::size_t>(size / 8); ++i) {
+    //     HMODULE currentModule = rawModules[i];
+    //     if(!currentModule)
+    //         continue;
+
+    //     MODULEINFO moduleInfo{ };
+    //     if(!GetModuleInformation(m_hProcess, currentModule, &moduleInfo, sizeof(MODULEINFO)))
+    //         moduleInfo.SizeOfImage = 0x1000; // write a dummy value if handle was stripped
+
+    //     char moduleName[MAX_PATH]{ };
+    //     GetModuleBaseNameA(m_hProcess, currentModule, moduleName, MAX_PATH);
+
+    //     modules.emplace_back(CModuleMemento(
+    //         reinterpret_cast<std::uint64_t>(currentModule),
+    //         static_cast<std::uint32_t>(moduleInfo.SizeOfImage),
+    //         std::string(moduleName)),
+    //         m_ThisProcess
+    //     );
+    // }
+
+    // return modules;
+}
+
+std::vector<CModule> CRetrieveModuleListPEB::retrieve() const {
+    printf("[%s] Retrieving via PEB\n", __FUNCTION__);
+
+    using NtQueryInformationProcessFn = NTSTATUS(*)(HANDLE, int, PVOID, ULONG, PULONG);
+
+    static auto getNtQueryInformationProcess = []() -> NtQueryInformationProcessFn {
+        HMODULE ntDll = GetModuleHandleA("ntdll.dll");
+        if(!ntDll) {
+            ntDll = LoadLibraryA("ntdll.dll");
+            if(!ntDll) throw std::runtime_error("Failed loading ntdll");
+        }
+
+        return reinterpret_cast<NtQueryInformationProcessFn>(GetProcAddress(ntDll, "NtQueryInformationProcess"));
+    };
+
+    static NtQueryInformationProcessFn NtQueryInformationProcess{ getNtQueryInformationProcess() };
+    if(!NtQueryInformationProcess)
+        throw std::runtime_error("Failed initializing NtQueryInformationProcess");
+
+    std::unique_ptr<std::remove_pointer<HANDLE>::type, void(*)(HANDLE)>
+        hProcess{ OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, m_ThisProcess->memento().id()), [](HANDLE handle) { CloseHandle(handle); } };
+
+    PROCESS_BASIC_INFORMATION basicInfo{ };
+    ULONG returnSize{ };
+    NTSTATUS status = NtQueryInformationProcess(hProcess.get(), ProcessBasicInformation, &basicInfo, sizeof(PROCESS_BASIC_INFORMATION), &returnSize);
+    if(status != STATUS_SUCCESS) {
+        printf("NtQueryInformationProcess failed with %x code\n", status);
+        return { };
+    }
+
+    hProcess.reset(); // close the handle
+    if(!basicInfo.PebBaseAddress)
+        return { };
+
+    PEB64 peb{ m_ThisProcess->read<PEB64>(reinterpret_cast<std::uint64_t>(basicInfo.PebBaseAddress)) };
+    if(!peb.Ldr)
+        return { };
+
+    std::vector<CModule> modules{ };
+    modules.emplace_back(CModuleMemento(
+        static_cast<std::uint64_t>(peb.ImageBaseAddress),
+        static_cast<std::uint32_t>(0x1000), // dummy size, it won't hurt: when dumping for example it retrieves image size from headers
+        m_ThisProcess->memento().name()),
+        m_ThisProcess
+    );
+
+    PEB_LDR_DATA pebLdrData{ m_ThisProcess->read<PEB_LDR_DATA>(peb.Ldr) };
+    if(!pebLdrData.InLoadOrderModuleList.Flink)
+        return { };
+
+    std::uint64_t firstLoadedModule{ reinterpret_cast<std::uint64_t>(pebLdrData.InLoadOrderModuleList.Flink) }, loadedModule{ firstLoadedModule };
+    for(std::size_t i = 0; i < 1000; ++i) {
+        loadedModule = m_ThisProcess->read<std::uint64_t>(loadedModule); // Flink [0x0]
+        if(loadedModule == firstLoadedModule || !loadedModule)
+            break;
+
+        LDR_DATA_TABLE_ENTRY entry{ m_ThisProcess->read<LDR_DATA_TABLE_ENTRY>(loadedModule) };
+        std::wstring dllNameW(MAX_PATH, '\00');
+        if(!m_ThisProcess->readToBuffer(reinterpret_cast<std::uint64_t>(entry.BaseDllName.Buffer), 256, dllNameW.data()))
+            continue;
+
+        modules.emplace_back(CModuleMemento(
+            reinterpret_cast<std::uint64_t>(entry.DllBase),
+            static_cast<std::uint32_t>(entry.SizeOfImage),
+            std::string(dllNameW.begin(), dllNameW.end())),
+            m_ThisProcess
+        );
+
+        //printf("%llx %x %ws\n", entry.DllBase, entry.SizeOfImage, dllNameW.c_str());
+    }
+
+    return modules;
+}
+
+void CModuleList::refresh() {
+    cleanup();
+
+    std::unique_ptr<IRetrieveModuleListStrategy> retrieveStrategy{ std::make_unique<CRetrieveModuleListSnapshot>(m_ThisProcess) };
+    switch(CSettingsManager::settings()->moduleListRetrieveMethod()) {
+    case CSettings::TRetrieveMethod::None:
+    case CSettings::TRetrieveMethod::Snapshot: break;
+    case CSettings::TRetrieveMethod::PEB:
+        retrieveStrategy = std::make_unique<CRetrieveModuleListPEB>(m_ThisProcess);
+        break;
+    default:
+        throw std::out_of_range("CModuleList::refresh -> retrieveMethod is out of range");
+    }
+
+    m_Modules = retrieveStrategy->retrieve();
+
     std::unique_ptr<ISortStrategy<CModule>> sortStrategy{ std::make_unique<CNoSort<CModule>>() };
     switch(CSettingsManager::settings()->moduleListSortType()) {
-        case TSort::None: break;
-        case TSort::ID:
+        case CSettings::TSort::None: break;
+        case CSettings::TSort::ID:
             sortStrategy = std::make_unique<CSortModulesByAddress>();
             break;
-        case TSort::Name:
+        case CSettings::TSort::Name:
             sortStrategy = std::make_unique<CSortModulesByName>();
             break;
         default:

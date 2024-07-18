@@ -22,6 +22,9 @@ void CSettingsWindow::connectSignals() {
     QObject::connect(ui->moduleListSortNoneButton, &QAbstractButton::clicked, this, &CSettingsWindow::changeModuleListSortType);
     QObject::connect(ui->moduleListSortNameButton, &QAbstractButton::clicked, this, &CSettingsWindow::changeModuleListSortType);
     QObject::connect(ui->moduleListSortAddressButton, &QAbstractButton::clicked, this, &CSettingsWindow::changeModuleListSortType);
+
+    QObject::connect(ui->moduleListRetrieveSnapshotButton, &QAbstractButton::clicked, this, &CSettingsWindow::changeModuleRetrieveMethod);
+    QObject::connect(ui->moduleListRetrievePEBButton, &QAbstractButton::clicked, this, &CSettingsWindow::changeModuleRetrieveMethod);
 }
 
 void CSettingsWindow::changeProcessListSortType() {
@@ -54,16 +57,34 @@ void CSettingsWindow::changeModuleListSortType() {
     emit moduleListSortTypeChanged();
 }
 
-TSort CSettings::processListSortType() const {
+void CSettingsWindow::changeModuleRetrieveMethod() {
+    static std::unordered_map<QString, TRetrieveMethod> titleToRetrieveMethodMap{
+        { "CreateToolhelp32Snapshot", TRetrieveMethod::Snapshot },
+        { "Process Environment Block (PEB)", TRetrieveMethod::PEB },
+    };
+
+    QRadioButton* v1 = qobject_cast<QRadioButton*>(sender());
+    if(!v1)
+        return;
+
+    ModuleList::m_RetrieveMethod = titleToRetrieveMethodMap[v1->text()];
+    emit moduleListRetrieveMethodChanged();
+}
+
+CSettings::TSort CSettings::processListSortType() const {
     return ProcessList::m_SortType;
 }
 
-TSort CSettings::moduleListSortType() const {
+CSettings::TSort CSettings::moduleListSortType() const {
     return ModuleList::m_SortType;
 }
 
 bool CSettings::moduleInfoIsHexadecimalFormat() const {
     return ModuleInfo::m_IsHexadecimal;
+}
+
+CSettings::TRetrieveMethod CSettings::moduleListRetrieveMethod() const {
+    return ModuleList::m_RetrieveMethod;
 }
 
 bool CSettings::memoryViewIsOffsetRelative() const {

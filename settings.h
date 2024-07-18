@@ -1,11 +1,7 @@
 #pragma once
 #include <QDialog>
 
-enum class TSort { // ik its not the best idea to put it here
-    None,
-    ID, // not an ID for modules
-    Name,
-};
+
 
 namespace Ui {
 class CSettings;
@@ -13,9 +9,21 @@ class CSettings;
 
 class CSettings {
 public:
+    enum class TRetrieveMethod {
+        None,
+        Snapshot,
+        PEB,
+    };
+    enum class TSort { // ik its not the best idea to put it here
+        None,
+        ID, // not an ID for modules
+        Name,
+    };
+
     TSort processListSortType() const;
     TSort moduleListSortType() const;
     bool moduleInfoIsHexadecimalFormat() const;
+    TRetrieveMethod moduleListRetrieveMethod() const;
     bool memoryViewIsOffsetRelative() const;
     bool memoryViewIsAutoUpdateEnabled() const;
     int memoryViewAutoUpdateInterval() const;
@@ -27,6 +35,7 @@ protected:
     class ModuleList {
     public:
         inline static TSort m_SortType{ TSort::Name };
+        inline static TRetrieveMethod m_RetrieveMethod{ TRetrieveMethod::Snapshot };
     };
     class ModuleInfo {
     public:
@@ -59,6 +68,7 @@ public:
 private slots:
     void changeProcessListSortType();
     void changeModuleListSortType();
+    void changeModuleRetrieveMethod();
 
     void on_memoryRealTimeUpdateCheckbox_stateChanged(int arg1);
     void on_memoryUpdateIntervalSlider_valueChanged(int value);
@@ -74,6 +84,7 @@ signals:
     void memoryViewFormatChanged();
     void processListSortTypeChanged();
     void moduleListSortTypeChanged();
+    void moduleListRetrieveMethodChanged();
 private:
     void connectSignals();
 private:

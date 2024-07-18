@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>252</width>
-    <height>462</height>
+    <height>532</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -18,14 +18,14 @@
   </property>
   <property name="minimumSize">
    <size>
-    <width>252</width>
+    <width>11</width>
     <height>462</height>
    </size>
   </property>
   <property name="maximumSize">
    <size>
-    <width>252</width>
-    <height>462</height>
+    <width>123213</width>
+    <height>123123</height>
    </size>
   </property>
   <property name="font">
@@ -46,7 +46,7 @@
      <x>10</x>
      <y>10</y>
      <width>232</width>
-     <height>441</height>
+     <height>511</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_4">
@@ -134,6 +134,59 @@
          </property>
          <property name="checked">
           <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QGroupBox" name="">
+      <property name="minimumSize">
+       <size>
+        <width>100</width>
+        <height>60</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>60</height>
+       </size>
+      </property>
+      <property name="title">
+       <string>Module List Retrieve Method</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <property name="spacing">
+        <number>2</number>
+       </property>
+       <property name="leftMargin">
+        <number>9</number>
+       </property>
+       <property name="topMargin">
+        <number>3</number>
+       </property>
+       <property name="rightMargin">
+        <number>9</number>
+       </property>
+       <property name="bottomMargin">
+        <number>3</number>
+       </property>
+       <item>
+        <widget class="QRadioButton" name="moduleListRetrieveSnapshotButton">
+         <property name="text">
+          <string>CreateToolhelp32Snapshot</string>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="moduleListRetrievePEBButton">
+         <property name="text">
+          <string>Process Environment Block (PEB)</string>
          </property>
         </widget>
        </item>

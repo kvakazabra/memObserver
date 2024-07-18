@@ -23,6 +23,7 @@ CModuleListWindow::~CModuleListWindow() {
 void CModuleListWindow::connectSignals() {
     QObject::connect(m_Settings, &CSettingsWindow::moduleInfoFormatChanged, this, &CModuleListWindow::onModuleInfoFormatChanged);
 
+    QObject::connect(m_Settings, &CSettingsWindow::moduleListRetrieveMethodChanged, this, &CModuleListWindow::on_modulesRefreshButton_clicked);
     QObject::connect(m_Settings, &CSettingsWindow::moduleListSortTypeChanged, this, &CModuleListWindow::on_modulesRefreshButton_clicked);
 
     QObject::connect(m_ProcessSelector, &CProcessSelectorWindow::processAttached, this, &CModuleListWindow::onProcessAttach);

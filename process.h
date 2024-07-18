@@ -103,6 +103,43 @@ public:
     void sort(std::vector<CModule>& v) override;
 };
 
+class IRetrieveModuleListStrategy {
+public:
+    IRetrieveModuleListStrategy(IProcessIO* thisProcess)
+        : m_ThisProcess{ thisProcess } { }
+    virtual ~IRetrieveModuleListStrategy() = default;
+
+    virtual std::vector<CModule> retrieve() const = 0;
+protected:
+    IProcessIO* m_ThisProcess{ std::nullptr_t() }; // required for CModule
+};
+
+class CRetrieveModuleListEnumerate : public IRetrieveModuleListStrategy {
+public:
+    CRetrieveModuleListEnumerate(IProcessIO* thisProcess, HANDLE hProcess)
+        : IRetrieveModuleListStrategy(thisProcess), m_hProcess{ hProcess } { }
+
+    virtual std::vector<CModule> retrieve() const override;
+protected:
+    HANDLE m_hProcess{ INVALID_HANDLE_VALUE }; // EnumProcessModules requires the minimum access privilege (PROCESS_QUERY_LIMITED_INFORMATION)
+};
+
+class CRetrieveModuleListSnapshot : public IRetrieveModuleListStrategy {
+public:
+    CRetrieveModuleListSnapshot(IProcessIO* thisProcess)
+        : IRetrieveModuleListStrategy(thisProcess) { }
+
+    virtual std::vector<CModule> retrieve() const override;
+};
+
+class CRetrieveModuleListPEB : public IRetrieveModuleListStrategy {
+public:
+    CRetrieveModuleListPEB(IProcessIO* thisProcess)
+        : IRetrieveModuleListStrategy(thisProcess) { }
+
+    virtual std::vector<CModule> retrieve() const override;
+};
+
 // must be instantiated in IProcessIO context
 class CModuleList final {
 public:
