@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>252</width>
-    <height>532</height>
+    <width>251</width>
+    <height>500</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -46,12 +46,24 @@
      <x>10</x>
      <y>10</y>
      <width>232</width>
-     <height>511</height>
+     <height>481</height>
     </rect>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_4">
     <item>
      <widget class="QGroupBox" name="groupBox">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>80</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>80</height>
+       </size>
+      </property>
       <property name="title">
        <string>Process List Sort</string>
       </property>
@@ -100,6 +112,18 @@
     </item>
     <item>
      <widget class="QGroupBox" name="groupBox">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>80</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>80</height>
+       </size>
+      </property>
       <property name="title">
        <string>Module List Sort</string>
       </property>
@@ -141,7 +165,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QGroupBox" name="">
+     <widget class="QGroupBox" name="groupBox">
       <property name="minimumSize">
        <size>
         <width>100</width>
@@ -195,10 +219,16 @@
     </item>
     <item>
      <widget class="QGroupBox" name="a">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>60</height>
+       </size>
+      </property>
       <property name="maximumSize">
        <size>
         <width>16777215</width>
-        <height>80</height>
+        <height>60</height>
        </size>
       </property>
       <property name="title">
@@ -260,6 +290,18 @@
        </property>
        <item>
         <widget class="QGroupBox" name="groupBox_3">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>60</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>60</height>
+          </size>
+         </property>
          <property name="title">
           <string>Offset Format</string>
          </property>
@@ -295,6 +337,18 @@
        </item>
        <item>
         <widget class="QGroupBox" name="groupBox_4">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>60</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>60</height>
+          </size>
+         </property>
          <property name="title">
           <string>Auto Update</string>
          </property>
