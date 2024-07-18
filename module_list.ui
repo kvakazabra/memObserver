@@ -322,7 +322,7 @@
               </spacer>
              </item>
              <item>
-              <widget class="QPushButton" name="sectionsListGoToButton_2">
+              <widget class="QPushButton" name="sectionListGoToButton">
                <property name="maximumSize">
                 <size>
                  <width>130</width>
