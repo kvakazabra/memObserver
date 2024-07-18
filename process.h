@@ -75,13 +75,13 @@ public:
     template<typename R>
     inline R read(std::uint64_t address) {
         R buf{ };
-        if(!readToBuffer(address, &buf, sizeof(R)))
+        if(!readToBuffer(address, sizeof(R), &buf))
             return { };
         return buf;
     }
     template<typename W>
     inline bool write(std::uint64_t address, W value) {
-        return writeFromBuffer(address, &value, sizeof(W));
+        return writeFromBuffer(address, sizeof(W), &value);
     }
 
     std::weak_ptr<CModuleList> moduleList() const;
